@@ -467,7 +467,8 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-dark btn-lg add-to-cart-btn w-100 mb-3" onclick="addToCart()">
+                        <!-- BOTÓN CORREGIDO: Cambiado add-to-cart-btn a btn-add-to-cart -->
+                        <button type="button" class="btn btn-dark btn-lg btn-add-to-cart w-100 mb-3">
                             Añadir al carrito
                         </button>
 
@@ -482,7 +483,7 @@
                                 <li>Fragancia 100% auténtica y original</li>
                                 <li>Larga duración de 8-12 horas</li>
                                 <li>Notas de salida: Bergamota, Limón</li>
-                                <li>Notas de corazón: Jazmín, Rosa</li>
+                                <li>Notas de corazón: Jasmín, Rosa</li>
                                 <li>Notas de fondo: Ámbar, Vainilla</li>
                                 <li>Concentración: Eau de Parfum</li>
                                 <li>Envío gratuito en compras superiores a $100</li>
@@ -521,7 +522,7 @@
                         <h4 class="mb-4">Descripción del Producto</h4>
                         <div class="long-description">
                             <p>Esencia Premium es una fragancia sofisticada que encapsula la elegancia y el lujo en cada gota. Creada para quienes aprecian las fragancias de alta calidad, esta composición única combina ingredientes cuidadosamente seleccionados de todo el mundo.</p>
-                            <p>Las notas de salida frescas y cítricas te dan la bienvenida con bergamota y limón, creando una primera impresión vibrante y energética. A medida que la fragancia se desarrolla, emergen las notas de corazón con un bouquet floral de jazmín y rosa, aportando feminidad y elegancia.</p>
+                            <p>Las notas de salida frescas y cítricas te dan la bienvenida con bergamota y limón, creando una primera impresión vibrante y energética. A medida que la fragancia se desarrolla, emergen las notas de corazón con un bouquet floral de jasmín y rosa, aportando feminidad y elegancia.</p>
                             <p>Finalmente, las notas de fondo de ámbar y vainilla proporcionan una base cálida y sensual que perdura en la piel, dejando un rastro memorable que no pasa desapercibido.</p>
                             <h5 class="mt-4 mb-3">Ideal para:</h5>
                             <ul>
@@ -748,36 +749,27 @@
       </div>
     </footer>
 
-    <!-- Orden: 1. jquery, 2. plugins (AOS/Swiper), 3. inventory (origen datos), 4. product (motor), 5. script (efectos) -->
+    <!-- Scripts en orden correcto -->
     <script src="js/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/plugins.js"></script>
-        <script src="js/inventory.js"></script>
-        <script src="js/cart.js"></script>
-        <script src="js/product.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/product.js"></script>
     <script src="js/script.js"></script>
     <script>
         // Comprar ahora: añade al carrito y redirige a checkout
         window.buyNow = function(){
-            // Ejecutar addToCart para guardar en localStorage (síncrono)
-            try{ 
-                addToCart(); 
-            } catch(e){
-                console.error('Error en addToCart:', e);
+            // Simular click en el botón de añadir al carrito
+            const btn = document.querySelector('.btn-add-to-cart');
+            if(btn) {
+                btn.click();
             }
             
-            // Actualizar badge del carrito
-            try{ 
-                updateCartBadge(); 
-            } catch(e){
-                console.error('Error en updateCartBadge:', e);
-            }
-            
-            // Dar tiempo suficiente para que se guarde en localStorage y luego redirigir
-            // (addToCart es síncrono pero usamos setTimeout para asegurar navegador está listo)
+            // Dar tiempo para que se guarde en localStorage y luego redirigir
             setTimeout(function(){ 
                 window.location.href = 'checkout.html'; 
-            }, 500);
+            }, 300);
         };
     </script>
   </body>
