@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Producto - Munish Perfum</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500;600;700&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/product.css">
+</head>
+<body style="background-color: #F0F8FF;">
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg navbar-light sticky-top" style="background-color: #0066FF; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);">
+        <div class="container">
+            <a href="index.html" class="navbar-brand fw-bold fs-5" style="color: #FFFFFF !important;">Munish Perfum</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: rgba(255,255,255,0.5);">
+                <span class="navbar-toggler-icon" style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 30 30%22%3E%3Cpath stroke=%22%23ffffff%22 stroke-linecap=%22round%22 stroke-miterlimit=%2210%22 stroke-width=%222%22 d=%22M4 7h22M4 15h22M4 23h22%22/%3E%3C/svg%3E');" ></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html" style="color: #FFFFFF !important;">Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="shop.html" style="color: #FFFFFF !important;">Tienda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cart.html" style="color: #FFFFFF !important;">🛒 Carrito</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-5">
+        <!-- Error State -->
+        <div id="product-not-found" class="container alert alert-warning d-none">
+            <p class="mb-0">❌ Producto no encontrado. <a href="shop.html">Volver a Tienda</a></p>
+        </div>
+
+        <!-- Product Detail -->
+        <div id="product-detail" class="d-none">
+            <!-- Image + Buy Section -->
+            <section class="container mb-5">
+                <div class="row g-4">
+                    <!-- Image Column -->
+                    <div class="col-lg-5">
+                        <div class="product-image-container position-relative bg-white rounded-lg shadow-sm p-4" id="image-container">
+                            <img id="product-image" src="images/placeholder.png" alt="Imagen" class="img-fluid mx-auto d-block" style="max-height: 500px;">
+                        </div>
+                    </div>
+
+                    <!-- Buy Column -->
+                    <div class="col-lg-7">
+                        <h1 id="product-name" class="display-5 fw-bold mb-2"></h1>
+                        <p id="product-brand" class="lead text-muted mb-1"></p>
+                        <p id="product-family" class="text-secondary mb-4"></p>
+
+                        <!-- Ratings placeholder -->
+                        <div class="mb-4">
+                            <span class="text-warning">★★★★★</span> <span class="text-muted small">(12 reseñas)</span>
+                        </div>
+
+                        <!-- Prices -->
+                        <div class="mb-4 p-3 bg-white rounded border">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Botella Completa</small>
+                                    <p class="h5 fw-bold">Consultar Precio</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Decant Seleccionado</small>
+                                    <p id="price-display" class="h5 fw-bold text-danger">Desde ₡0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Decant Selector -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Selecciona el Tamaño</label>
+                            <div class="decant-buttons d-flex gap-2 flex-wrap">
+                                <button class="decant-btn active" data-size="2ml" data-value="2ml">
+                                    <span class="size">2ml</span>
+                                    <span class="price" id="price-2ml">₡0</span>
+                                </button>
+                                <button class="decant-btn" data-size="3ml" data-value="3ml">
+                                    <span class="size">3ml</span>
+                                    <span class="price" id="price-3ml">₡0</span>
+                                </button>
+                                <button class="decant-btn" data-size="5ml" data-value="5ml">
+                                    <span class="size">5ml</span>
+                                    <span class="price" id="price-5ml">₡0</span>
+                                </button>
+                                <button class="decant-btn" data-size="10ml" data-value="10ml">
+                                    <span class="size">10ml</span>
+                                    <span class="price" id="price-10ml">₡0</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 mb-4">
+                            <button id="buy-now" class="btn btn-buy btn-lg fw-bold">Comprar Ya</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabs Section -->
+            <section class="container mb-5">
+                <ul class="nav nav-tabs border-bottom" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="desc-tab" data-bs-toggle="tab" data-bs-target="#desc-content" type="button">
+                            Descripción & Pirámide Olfativa
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="tech-tab" data-bs-toggle="tab" data-bs-target="#tech-content" type="button">
+                            Detalles Técnicos
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-content" type="button">
+                            Reseñas
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-4" id="productTabContent">
+                    <!-- Tab 1: Descripción -->
+                    <div class="tab-pane fade show active" id="desc-content" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-lg-7">
+                                <p id="product-full-description" class="lead"></p>
+                            </div>
+                            <div class="col-lg-5">
+                                <h5 class="fw-bold mb-4" style="color: #d4a574;">Pirámide Olfativa</h5>
+                                <div class="pyramid">
+                                    <div class="pyramid-level pyramid-top">
+                                        <h6>Notas de Salida (0-5 min)</h6>
+                                        <ul id="notas-salida" class="list-unstyled small"></ul>
+                                    </div>
+                                    <div class="pyramid-level pyramid-middle">
+                                        <h6>Notas de Corazón (5-30 min)</h6>
+                                        <ul id="notas-corazon" class="list-unstyled small"></ul>
+                                    </div>
+                                    <div class="pyramid-level pyramid-base">
+                                        <h6>Notas de Fondo (30+ min)</h6>
+                                        <ul id="notas-fondo" class="list-unstyled small"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Detalles Técnicos -->
+                    <div class="tab-pane fade" id="tech-content" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-muted">Familia Olfativa</h6>
+                                    <p id="tech-family" class="h6"></p>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-muted">Duración Aproximada</h6>
+                                    <p id="tech-duration" class="h6"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-muted">Estación Ideal</h6>
+                                    <div id="tech-estacion" class="d-flex gap-2 flex-wrap"></div>
+                                </div>
+                                <div class="mb-4">
+                                    <h6 class="fw-bold text-muted">Ocasión</h6>
+                                    <div id="tech-ocasion" class="d-flex gap-2 flex-wrap"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Reseñas -->
+                    <div class="tab-pane fade" id="reviews-content" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-lg-8">
+                                <div id="reviews-list"></div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold mb-3">Calificación Promedio</h6>
+                                        <p class="h4 text-warning">★★★★★</p>
+                                        <p class="text-muted small">Basado en 12 reseñas</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- También te puede interesar -->
+            <section class="container mb-5">
+                <h3 class="fw-bold mb-4">También te puede interesar</h3>
+                <div class="row g-4" id="recommendations"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2026 Munish Perfum. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/product-detail.js"></script>
+</body>
+</html>
