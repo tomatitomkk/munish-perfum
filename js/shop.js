@@ -1,275 +1,305 @@
 // ============================================================
-// SHOP.JS - Sistema de Filtrado Completo y Funcional
+// SHOP.JS - VERSIÓN REFACTORIZADA Y GARANTIZADA
 // ============================================================
 
-class ShopManager {
-    constructor() {
-        this.allProducts = [];
-        this.filteredProducts = [];
-        this.currentPage = 1;
-        this.productsPerPage = 12;
+(function() {
+    'use strict';
+    
+    // Variables globales del sistema
+    let allProducts = [];
+    let filteredProducts = [];
+    let currentPage = 1;
+    const productsPerPage = 12;
+    
+    // ====================
+    // INICIALIZACIÓN
+    // ====================
+    function init() {
+        console.log('%c=== SHOP SYSTEM INICIANDO ===', 'color: blue; font-weight: bold');
         
-        // Esperar a que el DOM esté listo
+        // Cargar productos
+        loadProducts();
+        
+        // Esperar a que DOM esté listo
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.init());
+            document.addEventListener('DOMContentLoaded', setupSystem);
         } else {
-            this.init();
+            setupSystem();
         }
     }
-
-    init() {
-        console.log('ShopManager inicializando...');
-        this.loadProducts();
-        this.setupEventListeners();
-        this.currentPage = 1;
-        
-        // Aplicar filtros iniciales (esto cargará los productos)
-        this.applyFilters();
+    
+    function setupSystem() {
+        console.log('DOM listo, configurando sistema...');
+        setupEventListeners();
+        renderAllProducts();
     }
-
-    loadProducts() {
-        // Carga robusta de datos
-        if (typeof window !== 'undefined' && window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
-            this.allProducts = window.PRODUCTS;
-            console.log('Productos cargados desde window.PRODUCTS:', this.allProducts.length);
-        } else if (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) {
-            this.allProducts = PRODUCTS;
-            console.log('Productos cargados desde PRODUCTS global:', this.allProducts.length);
+    
+    // ====================
+    // CARGA DE PRODUCTOS
+    // ====================
+    function loadProducts() {
+        if (window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
+            allProducts = window.PRODUCTS;
+            filteredProducts = [...allProducts];
+            console.log('%c✓ Productos cargados:', 'color: green', allProducts.length);
         } else {
-            console.warn('No se encontró PRODUCTS. Intentando localStorage...');
-            try {
-                const stored = localStorage.getItem('fraganze_inventory_v3');
-                this.allProducts = stored ? JSON.parse(stored) : [];
-                console.log('Productos cargados desde localStorage:', this.allProducts.length);
-            } catch (e) {
-                console.error('Error cargando desde localStorage:', e);
-                this.allProducts = [];
-            }
+            console.error('%c✗ NO SE ENCONTRARON PRODUCTOS', 'color: red');
+            allProducts = [];
+            filteredProducts = [];
         }
-        // Inicializar filtrados con una copia de todos
-        this.filteredProducts = [...this.allProducts];
     }
-
-    setupEventListeners() {
+    
+    // ====================
+    // EVENT LISTENERS
+    // ====================
+    function setupEventListeners() {
         console.log('Configurando event listeners...');
         
-        // 1. Buscador (Search) - Evento 'input' para búsqueda en tiempo real
+        // 1. BUSCADOR - Input en tiempo real
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                console.log('Buscando:', e.target.value);
-                this.currentPage = 1;
-                this.applyFilters();
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.trim();
+                console.log('%cBuscando: "' + searchTerm + '"', 'color: purple');
+                currentPage = 1;
+                applyFiltersAndRender();
             });
-            console.log('✓ Event listener agregado al buscador');
+            console.log('%c✓ Buscador conectado', 'color: green');
         } else {
-            console.error('✗ No se encontró #search-input');
+            console.error('%c✗ NO se encontró #search-input', 'color: red');
         }
-
-        // 2. Ordenar Por (Sort)
+        
+        // 2. ORDENAR - Change event
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
-            sortSelect.addEventListener('change', (e) => {
-                console.log('Ordenando por:', e.target.value);
-                this.applySort();
-                this.renderProducts();
+            sortSelect.addEventListener('change', function(e) {
+                const sortValue = e.target.value;
+                console.log('%cOrdenando por: ' + sortValue, 'color: orange');
+                applySortAndRender();
             });
-            console.log('✓ Event listener agregado al selector de orden');
+            console.log('%c✓ Selector de orden conectado', 'color: green');
         } else {
-            console.error('✗ No se encontró #sort-select');
+            console.error('%c✗ NO se encontró #sort-select', 'color: red');
         }
-
-        // 3. Filtros Checkbox (Género y Familia)
-        const checkboxes = document.querySelectorAll('.filter-gender, .filter-family');
-        console.log('Checkboxes encontrados:', checkboxes.length);
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', (e) => {
-                console.log('Checkbox cambiado:', e.target.value, e.target.checked);
-                this.currentPage = 1;
-                this.applyFilters();
+        
+        // 3. FILTROS CHECKBOX - Género
+        const genderCheckboxes = document.querySelectorAll('.filter-gender');
+        console.log('Checkboxes de género encontrados:', genderCheckboxes.length);
+        genderCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                console.log('Género cambiado:', this.value, this.checked);
+                currentPage = 1;
+                applyFiltersAndRender();
             });
         });
-
-        // 4. Precios
-        const priceInputs = [document.getElementById('price-min'), document.getElementById('price-max')];
-        priceInputs.forEach(input => {
-            if(input) {
-                input.addEventListener('change', (e) => {
-                    console.log('Precio cambiado:', e.target.id, e.target.value);
-                    this.currentPage = 1;
-                    this.applyFilters();
-                });
-            }
+        
+        // 4. FILTROS CHECKBOX - Familia
+        const familyCheckboxes = document.querySelectorAll('.filter-family');
+        console.log('Checkboxes de familia encontrados:', familyCheckboxes.length);
+        familyCheckboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                console.log('Familia cambiada:', this.value, this.checked);
+                currentPage = 1;
+                applyFiltersAndRender();
+            });
         });
-
-        // 5. Botón Aplicar
+        
+        // 5. PRECIOS
+        const priceMin = document.getElementById('price-min');
+        const priceMax = document.getElementById('price-max');
+        if (priceMin && priceMax) {
+            priceMin.addEventListener('change', function() {
+                console.log('Precio mínimo:', this.value);
+                currentPage = 1;
+                applyFiltersAndRender();
+            });
+            priceMax.addEventListener('change', function() {
+                console.log('Precio máximo:', this.value);
+                currentPage = 1;
+                applyFiltersAndRender();
+            });
+        }
+        
+        // 6. BOTÓN APLICAR
         const btnApply = document.getElementById('btn-apply-filters');
         if (btnApply) {
-            btnApply.addEventListener('click', () => {
-                console.log('Aplicar filtros clickeado');
-                this.currentPage = 1;
-                this.applyFilters();
-                document.getElementById('product-grid-main')?.scrollIntoView({ behavior: 'smooth' });
+            btnApply.addEventListener('click', function() {
+                console.log('Botón aplicar clickeado');
+                currentPage = 1;
+                applyFiltersAndRender();
             });
         }
-
-        // 6. Paginación
+        
+        // 7. PAGINACIÓN
         const pagination = document.querySelector('.pagination');
         if (pagination) {
-            pagination.addEventListener('click', (e) => this.handlePaginationClick(e));
+            pagination.addEventListener('click', handlePaginationClick);
         }
     }
-
-    applyFilters() {
-        console.log('=== Aplicando filtros ===');
+    
+    // ====================
+    // FILTRADO
+    // ====================
+    function applyFiltersAndRender() {
+        console.log('%c=== APLICANDO FILTROS ===', 'color: blue; font-weight: bold');
         
-        // A. Obtener valores
-        const searchInput = document.getElementById('search-input');
-        const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        console.log('Término de búsqueda:', term);
+        // Obtener valores de filtros
+        const searchTerm = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
         
         const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(cb => cb.value);
-        console.log('Géneros seleccionados:', selectedGenders);
-        
         const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(cb => cb.value);
-        console.log('Familias seleccionadas:', selectedFamilies);
         
         const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
         const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 999999;
-        console.log('Rango de precio:', minPrice, '-', maxPrice);
-
-        // B. Filtrar Array Maestro
-        this.filteredProducts = this.allProducts.filter(p => {
-            // Precio (Prioridad: Decant 2ml -> Precio Botella -> 0)
+        
+        console.log('Búsqueda:', searchTerm);
+        console.log('Géneros:', selectedGenders);
+        console.log('Familias:', selectedFamilies);
+        console.log('Rango precio:', minPrice, '-', maxPrice);
+        
+        // Filtrar productos
+        filteredProducts = allProducts.filter(product => {
+            // Obtener precio del producto
             let price = 0;
-            if (p.decant_prices && p.decant_prices['2ml']) {
-                price = p.decant_prices['2ml'];
-            } else if (p.price50ml) {
-                price = p.price50ml;
+            if (product.decant_prices && product.decant_prices['2ml']) {
+                price = product.decant_prices['2ml'];
+            } else if (product.price50ml) {
+                price = product.price50ml;
             }
-
-            // 1. Search (Nombre, Marca o Descripción)
-            const matchesSearch = !term || 
-                (p.name && p.name.toLowerCase().includes(term)) || 
-                (p.brand && p.brand.toLowerCase().includes(term)) ||
-                (p.descripcion && p.descripcion.toLowerCase().includes(term));
-
-            // 2. Género
-            const matchesGender = selectedGenders.length === 0 || 
-                selectedGenders.includes(p.genero) || 
-                selectedGenders.includes(p.category);
-
-            // 3. Familia
-            const matchesFamily = selectedFamilies.length === 0 || 
-                selectedFamilies.some(f => p.familia_olfativa && p.familia_olfativa.includes(f));
-
-            // 4. Precio
-            const matchesPrice = price >= minPrice && price <= maxPrice;
-
-            const passes = matchesSearch && matchesGender && matchesFamily && matchesPrice;
             
-            return passes;
+            // 1. Filtro de BÚsqueda (nombre, marca, descripción)
+            let matchesSearch = true;
+            if (searchTerm) {
+                const name = (product.name || '').toLowerCase();
+                const brand = (product.brand || '').toLowerCase();
+                const desc = (product.descripcion || '').toLowerCase();
+                matchesSearch = name.includes(searchTerm) || 
+                               brand.includes(searchTerm) || 
+                               desc.includes(searchTerm);
+            }
+            
+            // 2. Filtro de Género
+            let matchesGender = true;
+            if (selectedGenders.length > 0) {
+                matchesGender = selectedGenders.includes(product.genero) || 
+                               selectedGenders.includes(product.category);
+            }
+            
+            // 3. Filtro de Familia
+            let matchesFamily = true;
+            if (selectedFamilies.length > 0) {
+                matchesFamily = selectedFamilies.some(fam => {
+                    return product.familia_olfativa && product.familia_olfativa.includes(fam);
+                });
+            }
+            
+            // 4. Filtro de Precio
+            const matchesPrice = price >= minPrice && price <= maxPrice;
+            
+            // Retornar si pasa TODOS los filtros
+            return matchesSearch && matchesGender && matchesFamily && matchesPrice;
         });
-
-        console.log('Productos filtrados:', this.filteredProducts.length, 'de', this.allProducts.length);
-
-        // C. Aplicar Ordenamiento
-        this.applySort();
-
-        // D. Renderizar
-        this.renderProducts();
-        this.updateResultCount();
+        
+        console.log('%cProductos filtrados: ' + filteredProducts.length + ' de ' + allProducts.length, 'color: green; font-weight: bold');
+        
+        // Aplicar ordenamiento
+        applySort();
+        
+        // Renderizar
+        renderProducts();
+        updateResultCount();
     }
-
-    applySort() {
+    
+    // ====================
+    // ORDENAMIENTO
+    // ====================
+    function applySort() {
         const sortValue = document.getElementById('sort-select')?.value || 'popularidad';
         console.log('Aplicando orden:', sortValue);
         
         const getPrice = (p) => (p.decant_prices?.['2ml'] || p.price50ml || 0);
-
+        
         switch(sortValue) {
             case 'precio-ascendente':
-                this.filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
+                filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
+                console.log('Ordenado por precio ascendente');
                 break;
             case 'precio-descendente':
-                this.filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
+                filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
+                console.log('Ordenado por precio descendente');
                 break;
             case 'alfabetico':
-                this.filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                console.log('Ordenado alfabéticamente');
                 break;
             default: // popularidad
-                this.filteredProducts.sort((a, b) => {
-                    const idA = String(a.id || '');
-                    const idB = String(b.id || '');
-                    return idA.localeCompare(idB);
-                });
+                filteredProducts.sort((a, b) => String(a.id || '').localeCompare(String(b.id || '')));
+                console.log('Ordenado por popularidad (ID)');
         }
     }
-
-    handlePaginationClick(e) {
-        const link = e.target.closest('.page-link');
-        if (!link || link.parentElement.classList.contains('disabled')) return;
-        
-        e.preventDefault();
-        
-        const action = link.dataset.action;
-        const page = link.dataset.page;
-        const totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
-
-        if (action === 'prev' && this.currentPage > 1) {
-            this.currentPage--;
-        } else if (action === 'next' && this.currentPage < totalPages) {
-            this.currentPage++;
-        } else if (page) {
-            this.currentPage = parseInt(page);
-        }
-
-        this.renderProducts();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    function applySortAndRender() {
+        applySort();
+        renderProducts();
     }
-
-    renderProducts() {
+    
+    // ====================
+    // RENDERIZADO
+    // ====================
+    function renderAllProducts() {
+        console.log('Renderizando todos los productos inicialmente...');
+        filteredProducts = [...allProducts];
+        applySort();
+        renderProducts();
+        updateResultCount();
+    }
+    
+    function renderProducts() {
         const grid = document.getElementById('product-grid-main');
         if (!grid) {
-            console.error('No se encontró #product-grid-main');
+            console.error('%c✗ NO se encontró #product-grid-main', 'color: red');
             return;
         }
         
+        // Limpiar grid
         grid.innerHTML = '';
-
-        // Paginación
-        const start = (this.currentPage - 1) * this.productsPerPage;
-        const end = start + this.productsPerPage;
-        const visibleItems = this.filteredProducts.slice(start, end);
-
-        console.log('Renderizando productos:', visibleItems.length, 'de', this.filteredProducts.length);
-
-        if (visibleItems.length === 0) {
+        
+        // Calcular paginación
+        const start = (currentPage - 1) * productsPerPage;
+        const end = start + productsPerPage;
+        const visibleProducts = filteredProducts.slice(start, end);
+        
+        console.log('Renderizando página', currentPage, ':', visibleProducts.length, 'productos');
+        
+        // Si no hay productos
+        if (visibleProducts.length === 0) {
             grid.innerHTML = `
                 <div class="col-12 text-center py-5">
-                    <h4 class="text-muted">No encontramos perfumes con esos filtros.</h4>
-                    <button class="btn btn-outline-dark mt-2" onclick="window.location.reload()">Ver todos</button>
+                    <h4 class="text-muted">No se encontraron productos con esos filtros.</h4>
+                    <button class="btn btn-outline-dark mt-2" onclick="location.reload()">Ver todos</button>
                 </div>`;
-            this.renderPaginationUI(0);
+            renderPagination(0);
             return;
         }
-
-        visibleItems.forEach(product => {
-            grid.innerHTML += this.createProductCard(product);
+        
+        // Renderizar productos
+        visibleProducts.forEach(product => {
+            grid.innerHTML += createProductCard(product);
         });
-
-        this.renderPaginationUI(Math.ceil(this.filteredProducts.length / this.productsPerPage));
+        
+        // Renderizar paginación
+        const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+        renderPagination(totalPages);
     }
-
-    createProductCard(product) {
-        const priceVal = (product.decant_prices?.['2ml'] || product.price50ml || 0);
-        const price = priceVal.toLocaleString('es-CR');
+    
+    function createProductCard(product) {
+        const price = (product.decant_prices?.['2ml'] || product.price50ml || 0).toLocaleString('es-CR');
         
         let img = product.image || 'images/placeholder.png';
         if (!img.startsWith('http') && !img.startsWith('images/') && !img.startsWith('/')) {
             img = 'images/' + img;
         }
-
+        
         return `
         <div class="col-6 col-md-4 col-lg-3 mb-4">
             <div class="card product-card h-100 border-0 shadow-sm">
@@ -292,8 +322,11 @@ class ShopManager {
             </div>
         </div>`;
     }
-
-    renderPaginationUI(totalPages) {
+    
+    // ====================
+    // PAGINACIÓN
+    // ====================
+    function renderPagination(totalPages) {
         const nav = document.querySelector('.pagination');
         if (!nav) return;
         
@@ -301,44 +334,64 @@ class ShopManager {
             nav.innerHTML = '';
             return;
         }
-
-        let html = `
-            <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-action="prev">«</a>
-            </li>
-        `;
-
+        
+        let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-action="prev">«</a>
+                    </li>`;
+        
         for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
-                html += `
-                    <li class="page-item ${i === this.currentPage ? 'active' : ''}">
-                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                    </li>
-                `;
-            } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                         </li>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
                 html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
         }
-
-        html += `
-            <li class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-action="next">»</a>
-            </li>
-        `;
-
+        
+        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-action="next">»</a>
+                 </li>`;
+        
         nav.innerHTML = html;
     }
-
-    updateResultCount() {
+    
+    function handlePaginationClick(e) {
+        const link = e.target.closest('.page-link');
+        if (!link || link.parentElement.classList.contains('disabled')) return;
+        
+        e.preventDefault();
+        
+        const action = link.dataset.action;
+        const page = link.dataset.page;
+        const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+        
+        if (action === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (action === 'next' && currentPage < totalPages) {
+            currentPage++;
+        } else if (page) {
+            currentPage = parseInt(page);
+        }
+        
+        renderProducts();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // ====================
+    // UTILIDADES
+    // ====================
+    function updateResultCount() {
         const el = document.querySelector('.shop-result-count strong');
         if (el) {
-            el.textContent = this.filteredProducts.length;
-            console.log('Contador actualizado:', this.filteredProducts.length);
+            el.textContent = filteredProducts.length;
         }
     }
-}
-
-// Iniciar sistema cuando el script se carga
-console.log('shop.js cargado');
-window.shopManager = new ShopManager();
-console.log('ShopManager instanciado');
+    
+    // ====================
+    // INICIAR SISTEMA
+    // ====================
+    console.log('%cshop.js cargado', 'color: blue');
+    init();
+    
+})();
