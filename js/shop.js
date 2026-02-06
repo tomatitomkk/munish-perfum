@@ -1,5 +1,5 @@
 // ============================================================
-// SHOP.JS - Lógica Corregida y Optimizada
+// SHOP.JS - Sistema de Filtrado Completo y Funcional
 // ============================================================
 
 class ShopManager {
@@ -18,6 +18,7 @@ class ShopManager {
     }
 
     init() {
+        console.log('ShopManager inicializando...');
         this.loadProducts();
         this.setupEventListeners();
         this.currentPage = 1;
@@ -30,13 +31,18 @@ class ShopManager {
         // Carga robusta de datos
         if (typeof window !== 'undefined' && window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
             this.allProducts = window.PRODUCTS;
+            console.log('Productos cargados desde window.PRODUCTS:', this.allProducts.length);
         } else if (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) {
             this.allProducts = PRODUCTS;
+            console.log('Productos cargados desde PRODUCTS global:', this.allProducts.length);
         } else {
+            console.warn('No se encontró PRODUCTS. Intentando localStorage...');
             try {
                 const stored = localStorage.getItem('fraganze_inventory_v3');
                 this.allProducts = stored ? JSON.parse(stored) : [];
+                console.log('Productos cargados desde localStorage:', this.allProducts.length);
             } catch (e) {
+                console.error('Error cargando desde localStorage:', e);
                 this.allProducts = [];
             }
         }
@@ -45,28 +51,40 @@ class ShopManager {
     }
 
     setupEventListeners() {
-        // 1. Buscador (Search) - Con Debounce opcional si fuera necesario, aquí directo
+        console.log('Configurando event listeners...');
+        
+        // 1. Buscador (Search) - Evento 'input' para búsqueda en tiempo real
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                this.currentPage = 1; // Reset página al buscar
+                console.log('Buscando:', e.target.value);
+                this.currentPage = 1;
                 this.applyFilters();
             });
+            console.log('✓ Event listener agregado al buscador');
+        } else {
+            console.error('✗ No se encontró #search-input');
         }
 
         // 2. Ordenar Por (Sort)
         const sortSelect = document.getElementById('sort-select');
         if (sortSelect) {
-            sortSelect.addEventListener('change', () => {
-                this.applySort(); // Ordenar los resultados actuales
-                this.renderProducts(); // Repintar
+            sortSelect.addEventListener('change', (e) => {
+                console.log('Ordenando por:', e.target.value);
+                this.applySort();
+                this.renderProducts();
             });
+            console.log('✓ Event listener agregado al selector de orden');
+        } else {
+            console.error('✗ No se encontró #sort-select');
         }
 
         // 3. Filtros Checkbox (Género y Familia)
         const checkboxes = document.querySelectorAll('.filter-gender, .filter-family');
+        console.log('Checkboxes encontrados:', checkboxes.length);
         checkboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
+            cb.addEventListener('change', (e) => {
+                console.log('Checkbox cambiado:', e.target.value, e.target.checked);
                 this.currentPage = 1;
                 this.applyFilters();
             });
@@ -75,21 +93,27 @@ class ShopManager {
         // 4. Precios
         const priceInputs = [document.getElementById('price-min'), document.getElementById('price-max')];
         priceInputs.forEach(input => {
-            if(input) input.addEventListener('change', () => {
+            if(input) {
+                input.addEventListener('change', (e) => {
+                    console.log('Precio cambiado:', e.target.id, e.target.value);
+                    this.currentPage = 1;
+                    this.applyFilters();
+                });
+            }
+        });
+
+        // 5. Botón Aplicar
+        const btnApply = document.getElementById('btn-apply-filters');
+        if (btnApply) {
+            btnApply.addEventListener('click', () => {
+                console.log('Aplicar filtros clickeado');
                 this.currentPage = 1;
                 this.applyFilters();
+                document.getElementById('product-grid-main')?.scrollIntoView({ behavior: 'smooth' });
             });
-        });
+        }
 
-        // 5. Botón Aplicar (Móvil/Desktop explícito)
-        document.getElementById('btn-apply-filters')?.addEventListener('click', () => {
-            this.currentPage = 1;
-            this.applyFilters();
-            // Scroll suave hacia los resultados en móvil
-            document.getElementById('product-grid-main')?.scrollIntoView({ behavior: 'smooth' });
-        });
-
-        // 6. Paginación (Delegación de eventos)
+        // 6. Paginación
         const pagination = document.querySelector('.pagination');
         if (pagination) {
             pagination.addEventListener('click', (e) => this.handlePaginationClick(e));
@@ -97,42 +121,59 @@ class ShopManager {
     }
 
     applyFilters() {
+        console.log('=== Aplicando filtros ===');
+        
         // A. Obtener valores
         const searchInput = document.getElementById('search-input');
         const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        console.log('Término de búsqueda:', term);
         
         const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(cb => cb.value);
+        console.log('Géneros seleccionados:', selectedGenders);
+        
         const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(cb => cb.value);
+        console.log('Familias seleccionadas:', selectedFamilies);
         
         const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
-        const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 9999999;
+        const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 999999;
+        console.log('Rango de precio:', minPrice, '-', maxPrice);
 
         // B. Filtrar Array Maestro
         this.filteredProducts = this.allProducts.filter(p => {
-            // Lógica de Precio (Prioridad: Decant 2ml -> Precio Botella -> 0)
+            // Precio (Prioridad: Decant 2ml -> Precio Botella -> 0)
             let price = 0;
-            if (p.decant_prices && p.decant_prices['2ml']) price = p.decant_prices['2ml'];
-            else if (p.price50ml) price = p.price50ml;
+            if (p.decant_prices && p.decant_prices['2ml']) {
+                price = p.decant_prices['2ml'];
+            } else if (p.price50ml) {
+                price = p.price50ml;
+            }
 
             // 1. Search (Nombre, Marca o Descripción)
             const matchesSearch = !term || 
-                (p.name || '').toLowerCase().includes(term) || 
-                (p.brand || '').toLowerCase().includes(term) ||
-                (p.descripcion || '').toLowerCase().includes(term);
+                (p.name && p.name.toLowerCase().includes(term)) || 
+                (p.brand && p.brand.toLowerCase().includes(term)) ||
+                (p.descripcion && p.descripcion.toLowerCase().includes(term));
 
             // 2. Género
-            const matchesGender = selectedGenders.length === 0 || selectedGenders.includes(p.genero || p.category);
+            const matchesGender = selectedGenders.length === 0 || 
+                selectedGenders.includes(p.genero) || 
+                selectedGenders.includes(p.category);
 
             // 3. Familia
-            const matchesFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => (p.familia_olfativa || '').includes(f));
+            const matchesFamily = selectedFamilies.length === 0 || 
+                selectedFamilies.some(f => p.familia_olfativa && p.familia_olfativa.includes(f));
 
             // 4. Precio
             const matchesPrice = price >= minPrice && price <= maxPrice;
 
-            return matchesSearch && matchesGender && matchesFamily && matchesPrice;
+            const passes = matchesSearch && matchesGender && matchesFamily && matchesPrice;
+            
+            return passes;
         });
 
-        // C. Aplicar Ordenamiento actual a los resultados filtrados
+        console.log('Productos filtrados:', this.filteredProducts.length, 'de', this.allProducts.length);
+
+        // C. Aplicar Ordenamiento
         this.applySort();
 
         // D. Renderizar
@@ -142,19 +183,26 @@ class ShopManager {
 
     applySort() {
         const sortValue = document.getElementById('sort-select')?.value || 'popularidad';
+        console.log('Aplicando orden:', sortValue);
         
-        // Helper para precio
         const getPrice = (p) => (p.decant_prices?.['2ml'] || p.price50ml || 0);
 
-        if (sortValue === 'precio-ascendente') {
-            this.filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
-        } else if (sortValue === 'precio-descendente') {
-            this.filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
-        } else if (sortValue === 'alfabetico') {
-            this.filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-        } else {
-            // Popularidad / Defecto (por ID o orden original)
-            this.filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+        switch(sortValue) {
+            case 'precio-ascendente':
+                this.filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
+                break;
+            case 'precio-descendente':
+                this.filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
+                break;
+            case 'alfabetico':
+                this.filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                break;
+            default: // popularidad
+                this.filteredProducts.sort((a, b) => {
+                    const idA = String(a.id || '');
+                    const idB = String(b.id || '');
+                    return idA.localeCompare(idB);
+                });
         }
     }
 
@@ -182,7 +230,10 @@ class ShopManager {
 
     renderProducts() {
         const grid = document.getElementById('product-grid-main');
-        if (!grid) return;
+        if (!grid) {
+            console.error('No se encontró #product-grid-main');
+            return;
+        }
         
         grid.innerHTML = '';
 
@@ -190,6 +241,8 @@ class ShopManager {
         const start = (this.currentPage - 1) * this.productsPerPage;
         const end = start + this.productsPerPage;
         const visibleItems = this.filteredProducts.slice(start, end);
+
+        console.log('Renderizando productos:', visibleItems.length, 'de', this.filteredProducts.length);
 
         if (visibleItems.length === 0) {
             grid.innerHTML = `
@@ -209,12 +262,10 @@ class ShopManager {
     }
 
     createProductCard(product) {
-        // Precio y foto seguros
         const priceVal = (product.decant_prices?.['2ml'] || product.price50ml || 0);
         const price = priceVal.toLocaleString('es-CR');
         
         let img = product.image || 'images/placeholder.png';
-        // Corrección de rutas de imágenes
         if (!img.startsWith('http') && !img.startsWith('images/') && !img.startsWith('/')) {
             img = 'images/' + img;
         }
@@ -258,7 +309,6 @@ class ShopManager {
         `;
 
         for (let i = 1; i <= totalPages; i++) {
-            // Lógica para mostrar solo algunas páginas si hay muchas (1,2,..,Actual,..,Ultima)
             if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
                 html += `
                     <li class="page-item ${i === this.currentPage ? 'active' : ''}">
@@ -281,9 +331,14 @@ class ShopManager {
 
     updateResultCount() {
         const el = document.querySelector('.shop-result-count strong');
-        if (el) el.textContent = this.filteredProducts.length;
+        if (el) {
+            el.textContent = this.filteredProducts.length;
+            console.log('Contador actualizado:', this.filteredProducts.length);
+        }
     }
 }
 
-// Iniciar sistema
+// Iniciar sistema cuando el script se carga
+console.log('shop.js cargado');
 window.shopManager = new ShopManager();
+console.log('ShopManager instanciado');
