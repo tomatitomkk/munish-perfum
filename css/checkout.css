@@ -53,11 +53,11 @@
     font-weight: 500;
 }
 
-/* Tidy stepper text alignment */
 .checkout-steps .step {
     text-align: center;
     min-width: 120px;
 }
+
 .checkout-steps .step .step-number {
     margin: 0 auto 6px auto;
 }
@@ -195,8 +195,8 @@ textarea.form-control {
 }
 
 .order-item-image {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
@@ -230,75 +230,6 @@ textarea.form-control {
     font-weight: 600;
     color: #74909B;
 }
-
-/* Compact order item layout for checkout */
-.order-items .order-item {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #f1f3f5;
-}
-.order-items .order-item-image {
-    width: 80px;
-    height: 80px;
-    flex-shrink: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #fff;
-}
-.order-items .order-item-details {
-    flex: 1;
-}
-.order-items .order-item-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 4px;
-}
-.order-items .order-item-meta {
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-
-/* Also apply to checkout page container (#order-items) */
-#order-items .order-item,
-#order-items .order-item-image,
-#order-items .order-item-details {
-}
-#order-items .order-item-image {
-    width: 80px;
-    height: 80px;
-    overflow: hidden;
-    border-radius: 8px;
-}
-#order-items .order-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-#order-items .order-item-details {
-    padding-left: 12px;
-}
-.order-items .order-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.order-items .order-item-details {
-    flex: 1;
-}
-.order-items .order-item-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 4px;
-}
-.order-items .order-item-meta {
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-
-/* Smaller totals block for compact look */
-.order-totals { padding-top: 16px; }
 
 /* Order Totals */
 .order-totals {
@@ -364,104 +295,88 @@ textarea.form-control {
     color: #6c757d;
 }
 
-/* SINPE Instructions */
-.sinpe-instructions {
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-}
+/* ============================================
+   NUEVA SECCIÓN: PAGO MEJORADO Y LIMPIO
+   ============================================ */
 
-.sinpe-instructions .alert {
-    border-radius: 10px;
-    border-left: 4px solid #0dcaf0;
-}
-
-.sinpe-instructions ol {
-    margin-left: 20px;
-    line-height: 1.8;
-}
-
-/* SINPE Details */
-.sinpe-details {
+/* Caja de información SINPE */
+.sinpe-info-box {
     background: #f8f9fa;
-    border-radius: 10px;
-    padding: 25px;
-    margin-top: 25px;
+    border-radius: 12px;
+    padding: 24px;
+    border: 2px solid #e9ecef;
 }
 
-.detail-box {
-    margin-bottom: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #dee2e6;
+.info-item {
+    padding: 12px 0;
 }
 
-.detail-box:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.detail-box label {
+.info-item label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #6c757d;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.detail-box strong {
-    font-size: 1.2rem;
-    color: #333;
+/* Caja del monto total destacada */
+.total-amount-box {
+    background: linear-gradient(135deg, #74909B 0%, #5a7a88 100%);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(116, 144, 155, 0.3);
 }
 
-.sinpe-number {
-    display: flex;
-    align-items: center;
+.total-amount-box label {
+    color: rgba(255,255,255,0.95);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
 }
 
-.sinpe-number strong {
-    font-size: 1.5rem;
-    color: #74909B;
+.total-amount-box h2 {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
     letter-spacing: 1px;
 }
 
-.detail-box.total-amount {
-    background: linear-gradient(135deg, #74909B 0%, #5a7a88 100%);
-    padding: 20px;
-    border-radius: 8px;
-    color: white;
-    border: none;
+/* Sección de WhatsApp destacada */
+.whatsapp-highlight-box {
+    background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+    border: 2px solid #81C784;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+    box-shadow: 0 3px 10px rgba(129, 199, 132, 0.2);
 }
 
-.detail-box.total-amount label {
-    color: rgba(255,255,255,0.9);
+.whatsapp-highlight-box h5 {
+    color: #2E7D32;
+    font-weight: 600;
+    margin-bottom: 8px;
 }
 
-.detail-box.total-amount h3 {
-    color: white;
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-/* Upload Proof */
-.upload-proof {
-    background: white;
-    border: 2px dashed #dee2e6;
-    border-radius: 10px;
-    padding: 25px;
-    text-align: center;
+.whatsapp-highlight-box .btn-success {
+    background: #25D366;
+    border-color: #25D366;
+    font-weight: 600;
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
     transition: all 0.3s ease;
 }
 
-.upload-proof:hover {
-    border-color: #74909B;
-    background: #f8f9fa;
-}
-
-.upload-proof h5 {
-    color: #333;
-    font-weight: 600;
-    margin-bottom: 15px;
+.whatsapp-highlight-box .btn-success:hover {
+    background: #20BA5A;
+    border-color: #20BA5A;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 211, 102, 0.4);
 }
 
 /* Confirmation Screen */
@@ -502,6 +417,14 @@ textarea.form-control {
         left: 10%;
         right: 10%;
     }
+    
+    .whatsapp-highlight-box .row {
+        text-align: center;
+    }
+    
+    .whatsapp-highlight-box .btn-success {
+        max-width: 100% !important;
+    }
 }
 
 @media (max-width: 768px) {
@@ -535,11 +458,13 @@ textarea.form-control {
     .step span {
         font-size: 0.8rem;
     }
-
-    .sinpe-number {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+    
+    .total-amount-box h2 {
+        font-size: 2rem;
+    }
+    
+    .sinpe-info-box {
+        padding: 16px;
     }
 }
 
@@ -553,8 +478,12 @@ textarea.form-control {
         font-size: 1.5rem;
     }
 
-    .detail-box.total-amount h3 {
-        font-size: 1.6rem;
+    .total-amount-box h2 {
+        font-size: 1.8rem;
+    }
+    
+    .whatsapp-highlight-box {
+        padding: 16px;
     }
 }
 
