@@ -102,6 +102,22 @@
                 gap: 15px;
             }
         }
+        /* Ensure offcanvas menu links are visible on light backgrounds in mobile */
+        .offcanvas .navbar-brand {
+            color: #000000 !important;
+        }
+        .offcanvas .nav-link {
+            color: #000000 !important;
+        }
+        /* Make filter collapse button visible and tidy on mobile */
+        .filter-collapse-toggle { display: none; }
+        @media (max-width: 991px) {
+            .filter-collapse-toggle { display: block; }
+            .filter-section.collapse { display: none; }
+            .filter-section.collapse.show { display: block; }
+        }
+        /* Ensure product cards have stable height and spacing on mobile */
+        .product-card { min-height: 320px; }
     </style>
 </head>
 <body class="bg-body">
@@ -159,7 +175,10 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 mb-4">
-                    <div class="filter-section">
+                    <button class="btn btn-outline-secondary filter-collapse-toggle mb-3 d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                        Filtros
+                    </button>
+                    <div id="filterCollapse" class="filter-section collapse show d-lg-block">
                         <h5 class="mb-4">Filtrar Productos</h5>
                         <div class="filter-group">
                             <label for="search-input">Buscar</label>

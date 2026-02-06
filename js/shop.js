@@ -71,7 +71,10 @@ class ShopManager {
         document.getElementById('btn-apply-filters')?.addEventListener('click', triggerFilter);
 
         // Ordenamiento
-        document.getElementById('sort-select')?.addEventListener('change', () => this.applySort());
+        document.getElementById('sort-select')?.addEventListener('change', () => {
+            this.currentPage = 1;
+            this.applySort();
+        });
     }
 
     setupPaginationEvents() {
@@ -119,33 +122,40 @@ class ShopManager {
 
         // 2. Filtrar el array
         this.filteredProducts = this.allProducts.filter(product => {
-            // Lógica de Precio (Fallback seguro)
+            // Lógica de Precio (Fallback seguro) - forzar Number
             let price = 0;
-            if (product.decant_prices && product.decant_prices['2ml']) price = product.decant_prices['2ml'];
-            else if (product.price50ml) price = product.price50ml;
+            try {
+                if (product.decant_prices && product.decant_prices['2ml'] !== undefined) price = Number(product.decant_prices['2ml']) || 0;
+                else if (product.price50ml !== undefined) price = Number(product.price50ml) || 0;
+            } catch (e) { price = 0; }
 
             // Preparar campos para comparación (soporte retrocompatible)
             const prodName = (product.name || '').toLowerCase();
-            const prodBrand = (product.brand || '').toLowerCase();
-            const prodDescripcion = (product.descripcion || '').toLowerCase();
-            const prodGenero = ((product.genero || product.gender || product.category) || '').toLowerCase();
-            const prodFamilia = (product.familia_olfativa || '').toLowerCase();
-
-            // Condiciones
+            const prodBrand = (product.brand || product.marca || '').toLowerCase();
+            // Solo nombre y marca para buscador, robusto a mayúsculas/minúsculas
             const matchSearch = !searchTerm || (
                 prodName.includes(searchTerm) ||
-                prodBrand.includes(searchTerm) ||
-                prodDescripcion.includes(searchTerm)
+                prodBrand.includes(searchTerm)
             );
-            const matchGender = selectedGenders.length === 0 || selectedGenders.includes(prodGenero);
+
+            // Género: permitir includes para mayor flexibilidad (por ejemplo 'hombre' dentro de 'Hombre y Unisex')
+            const prodGenero = ((product.genero || product.gender || product.category) || '').toLowerCase();
+            const matchGender = selectedGenders.length === 0 || selectedGenders.some(g => prodGenero.includes(g));
+
+            // Familia olfativa: permitir includes
+            const prodFamilia = (product.familia_olfativa || product.family || '').toLowerCase();
             const matchFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => prodFamilia.includes(f));
-            const matchPrice = price >= minPrice && price <= maxPrice;
+
+            const matchPrice = Number(price) >= Number(minPrice) && Number(price) <= Number(maxPrice);
 
             return matchSearch && matchGender && matchFamily && matchPrice;
         });
 
         // 3. Reiniciar a página 1 y aplicar orden actual
         this.currentPage = 1;
+        // Limpiar contenedor antes de renderizar
+        const container = document.getElementById('product-grid-main');
+        if (container) container.innerHTML = '';
         this.applySort(false); // false para no re-renderizar doble
         this.renderProducts();
         this.updateResultCount();
@@ -153,9 +163,12 @@ class ShopManager {
 
     applySort(render = true) {
         const sortValue = document.getElementById('sort-select')?.value || 'popularidad';
-        
-        // Helper precio
-        const getPrice = p => (p.decant_prices?.['2ml'] || p.price50ml || 0);
+        // Helper precio (asegurar Number)
+        const getPrice = p => {
+            try {
+                return Number(p.decant_prices?.['2ml'] ?? p.price50ml ?? 0) || 0;
+            } catch (e) { return 0; }
+        };
 
         if (sortValue === 'precio-ascendente') {
             this.filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
@@ -172,8 +185,13 @@ class ShopManager {
     renderProducts() {
         const container = document.getElementById('product-grid-main');
         if (!container) return;
-        
+        // Limpieza de renderizado antes de mostrar productos
         container.innerHTML = '';
+
+        // Asegurar que currentPage esté en rango
+        const totalPages = Math.max(1, Math.ceil(this.filteredProducts.length / this.productsPerPage));
+        if (this.currentPage > totalPages) this.currentPage = totalPages;
+        if (this.currentPage < 1) this.currentPage = 1;
 
         // Paginación lógica
         const start = (this.currentPage - 1) * this.productsPerPage;
@@ -193,6 +211,8 @@ class ShopManager {
         });
 
         this.renderPaginationUI();
+        // Actualizar contador de resultados
+        this.updateResultCount();
     }
 
     createProductCard(product) {

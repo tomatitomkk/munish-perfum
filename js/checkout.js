@@ -695,7 +695,7 @@ const Checkout = {
 ,
     // Confirmar pago: se llama desde el botón inline confirmPayment
     confirmPayment(evt) {
-        // Asegurarse de que orderData existe
+        // Simplified checkout: generate WhatsApp message and open chat with prefilled order
         if (!this.orderData) {
             this.loadOrderSummary();
             if (!this.orderData) {
@@ -708,24 +708,33 @@ const Checkout = {
         this.collectFormData();
 
         const customer_name = ((this.orderData.customer.firstName || '').trim() + ' ' + (this.orderData.customer.lastName || '').trim()).trim();
-        const customer_email = (this.orderData.customer.email || '').trim();
+        const address = (this.orderData.shipping && this.orderData.shipping.address) ? this.orderData.shipping.address.trim() : (this.orderData.customer.address || '').trim();
 
-        // Validar campos críticos
-        if (!customer_name || !customer_email) {
-            alert('Por favor completa tu Nombre y Correo antes de confirmar el pago.');
-            // Llevar al usuario al paso 1 (información)
+        if (!customer_name || !address) {
+            alert('Por favor completa tu Nombre y Dirección antes de confirmar el pedido.');
             this.updateStep(1);
             return;
         }
 
-        const proofInput = document.getElementById('payment-proof');
-        if (!proofInput) {
-            alert('No se encontró el campo de comprobante de pago.');
-            return;
-        }
+        // Construir lista de productos: Nombre (tamaño) x cantidad
+        const itemsList = (this.orderData.items || []).map(i => `${i.name}${i.size ? ' (' + i.size + ')' : ''} x${i.quantity || 1}`).join(', ');
 
-        // Delegar a la función existente que valida y sube el comprobante
-        this.validateAndUploadPaymentProof(proofInput, evt);
+        const total = Number(this.orderData.totals && this.orderData.totals.total ? this.orderData.totals.total : 0) || 0;
+
+        const msg = `Hola Jerald, mi nombre es ${customer_name}. Quiero pedir: ${itemsList} para enviar a: ${address}. El total es: ₡${total.toLocaleString('es-CR')}.`;
+
+        const phone = '50684453904';
+        const waLink = `https://wa.me/${phone}?text=` + encodeURIComponent(msg);
+
+        // Abrir WhatsApp en nueva ventana/pestaña
+        window.open(waLink, '_blank');
+
+        // Generar número de pedido y mostrar confirmación localmente
+        this.orderNumber = 'ORD-' + Date.now();
+        this.showConfirmation();
+
+        // Limpiar carrito local
+        try { Cart.clearCart(); } catch (e) { console.warn('No se pudo limpiar el carrito automáticamente', e); }
     }
 };
 
