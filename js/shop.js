@@ -226,10 +226,10 @@ class ShopManager {
         if (!pagination) return;
 
         const totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
-        
+
         // Si no hay páginas o solo hay 1, ocultar paginación o dejarla mínima
         if (totalPages <= 1) {
-            pagination.innerHTML = ''; 
+            pagination.innerHTML = '';
             return;
         }
 
@@ -241,23 +241,33 @@ class ShopManager {
                     <a class="page-link" href="#" data-action="prev" aria-label="Anterior">&laquo;</a>
                  </li>`;
 
-        // Números de Página (Lógica inteligente para no mostrar 100 números)
-        // Mostramos: 1, ..., actual-1, actual, actual+1, ..., ultimo
-        for (let i = 1; i <= totalPages; i++) {
-            if (
-                i === 1 || 
-                i === totalPages || 
-                (i >= this.currentPage - 1 && i <= this.currentPage + 1)
-            ) {
+        // Si hay 4 páginas o menos, mostrar todos los números
+        if (totalPages <= 4) {
+            for (let i = 1; i <= totalPages; i++) {
                 const active = i === this.currentPage ? 'active' : '';
                 html += `<li class="page-item ${active}">
                             <a class="page-link" href="#" data-page="${i}">${i}</a>
                          </li>`;
-            } else if (
-                i === this.currentPage - 2 || 
-                i === this.currentPage + 2
-            ) {
-                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        } else {
+            // Números de Página (Lógica inteligente para no mostrar 100 números)
+            // Mostramos: 1, ..., actual-1, actual, actual+1, ..., ultimo
+            for (let i = 1; i <= totalPages; i++) {
+                if (
+                    i === 1 ||
+                    i === totalPages ||
+                    (i >= this.currentPage - 1 && i <= this.currentPage + 1)
+                ) {
+                    const active = i === this.currentPage ? 'active' : '';
+                    html += `<li class="page-item ${active}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                             </li>`;
+                } else if (
+                    i === this.currentPage - 2 ||
+                    i === this.currentPage + 2
+                ) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
             }
         }
 
