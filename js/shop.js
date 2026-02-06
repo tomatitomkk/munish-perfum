@@ -1,5 +1,5 @@
 // ============================================================
-// SHOP.JS - Renderizado dinámico de productos, filtros y paginación
+// SHOP.JS - Lógica Corregida y Optimizada
 // ============================================================
 
 class ShopManager {
@@ -18,27 +18,21 @@ class ShopManager {
     }
 
     init() {
-        // 1. Cargar productos
         this.loadProducts();
-
-        // 2. Configurar eventos de filtros y ordenamiento
-        this.setupFilterEvents();
-
-        // 3. Configurar eventos de paginación (Delegación de eventos)
-        this.setupPaginationEvents();
-
-        // 4. Renderizado inicial
+        this.setupEventListeners();
+        this.currentPage = 1;
+        
+        // Aplicar filtros iniciales (esto cargará los productos)
         this.applyFilters();
     }
 
     loadProducts() {
-        // Intentar cargar desde window.PRODUCTS (products.js)
-        if (window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
+        // Carga robusta de datos
+        if (typeof window !== 'undefined' && window.PRODUCTS && Array.isArray(window.PRODUCTS)) {
             this.allProducts = window.PRODUCTS;
         } else if (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) {
             this.allProducts = PRODUCTS;
         } else {
-            // Fallback a localStorage si es necesario
             try {
                 const stored = localStorage.getItem('fraganze_inventory_v3');
                 this.allProducts = stored ? JSON.parse(stored) : [];
@@ -46,129 +40,111 @@ class ShopManager {
                 this.allProducts = [];
             }
         }
-        // Inicialmente, los filtrados son todos
+        // Inicializar filtrados con una copia de todos
         this.filteredProducts = [...this.allProducts];
     }
 
-    setupFilterEvents() {
-        // Función helper para aplicar filtros al cambiar cualquier input
-        const triggerFilter = () => this.applyFilters();
+    setupEventListeners() {
+        // 1. Buscador (Search) - Con Debounce opcional si fuera necesario, aquí directo
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.currentPage = 1; // Reset página al buscar
+                this.applyFilters();
+            });
+        }
 
-        // Búsqueda
-        document.getElementById('search-input')?.addEventListener('input', triggerFilter);
-        
-        // Checkboxes de Género
-        document.querySelectorAll('.filter-gender').forEach(cb => cb.addEventListener('change', triggerFilter));
-        
-        // Checkboxes de Familia
-        document.querySelectorAll('.filter-family').forEach(cb => cb.addEventListener('change', triggerFilter));
-        
-        // Precios
-        document.getElementById('price-min')?.addEventListener('change', triggerFilter);
-        document.getElementById('price-max')?.addEventListener('change', triggerFilter);
-        
-        // Botón explícito (por si acaso)
-        document.getElementById('btn-apply-filters')?.addEventListener('click', triggerFilter);
+        // 2. Ordenar Por (Sort)
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', () => {
+                this.applySort(); // Ordenar los resultados actuales
+                this.renderProducts(); // Repintar
+            });
+        }
 
-        // Ordenamiento
-        document.getElementById('sort-select')?.addEventListener('change', () => {
+        // 3. Filtros Checkbox (Género y Familia)
+        const checkboxes = document.querySelectorAll('.filter-gender, .filter-family');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                this.currentPage = 1;
+                this.applyFilters();
+            });
+        });
+
+        // 4. Precios
+        const priceInputs = [document.getElementById('price-min'), document.getElementById('price-max')];
+        priceInputs.forEach(input => {
+            if(input) input.addEventListener('change', () => {
+                this.currentPage = 1;
+                this.applyFilters();
+            });
+        });
+
+        // 5. Botón Aplicar (Móvil/Desktop explícito)
+        document.getElementById('btn-apply-filters')?.addEventListener('click', () => {
             this.currentPage = 1;
-            this.applySort();
+            this.applyFilters();
+            // Scroll suave hacia los resultados en móvil
+            document.getElementById('product-grid-main')?.scrollIntoView({ behavior: 'smooth' });
         });
-    }
 
-    setupPaginationEvents() {
-        const paginationContainer = document.querySelector('.pagination');
-        if (!paginationContainer) return;
-
-        // Usamos delegación de eventos: escuchamos clicks en el contenedor padre
-        paginationContainer.addEventListener('click', (e) => {
-            // Buscar el elemento <a> más cercano al click
-            const link = e.target.closest('.page-link');
-            
-            // Si no fue en un link o el link está deshabilitado, ignorar
-            if (!link || link.parentElement.classList.contains('disabled')) {
-                e.preventDefault();
-                return;
-            }
-
-            e.preventDefault(); // Evitar salto de página del navegador
-
-            const action = link.getAttribute('data-action');
-            const page = link.getAttribute('data-page');
-            const totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
-
-            if (action === 'prev') {
-                if (this.currentPage > 1) this.currentPage--;
-            } else if (action === 'next') {
-                if (this.currentPage < totalPages) this.currentPage++;
-            } else if (page) {
-                this.currentPage = parseInt(page);
-            }
-
-            // Renderizar la nueva página y subir scroll
-            this.renderProducts();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+        // 6. Paginación (Delegación de eventos)
+        const pagination = document.querySelector('.pagination');
+        if (pagination) {
+            pagination.addEventListener('click', (e) => this.handlePaginationClick(e));
+        }
     }
 
     applyFilters() {
-        // 1. Leer valores del DOM
-        const searchTerm = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
-        const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(el => el.value.toLowerCase());
-        const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(el => el.value.toLowerCase());
+        // A. Obtener valores
+        const searchInput = document.getElementById('search-input');
+        const term = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        
+        const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(cb => cb.value);
+        const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(cb => cb.value);
+        
         const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
-        const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 999999;
+        const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 9999999;
 
-        // 2. Filtrar el array
-        this.filteredProducts = this.allProducts.filter(product => {
-            // Lógica de Precio (Fallback seguro) - forzar Number
+        // B. Filtrar Array Maestro
+        this.filteredProducts = this.allProducts.filter(p => {
+            // Lógica de Precio (Prioridad: Decant 2ml -> Precio Botella -> 0)
             let price = 0;
-            try {
-                if (product.decant_prices && product.decant_prices['2ml'] !== undefined) price = Number(product.decant_prices['2ml']) || 0;
-                else if (product.price50ml !== undefined) price = Number(product.price50ml) || 0;
-            } catch (e) { price = 0; }
+            if (p.decant_prices && p.decant_prices['2ml']) price = p.decant_prices['2ml'];
+            else if (p.price50ml) price = p.price50ml;
 
-            // Preparar campos para comparación (soporte retrocompatible)
-            const prodName = (product.name || '').toLowerCase();
-            const prodBrand = (product.brand || product.marca || '').toLowerCase();
-            // Solo nombre y marca para buscador, robusto a mayúsculas/minúsculas
-            const matchSearch = !searchTerm || (
-                prodName.includes(searchTerm) ||
-                prodBrand.includes(searchTerm)
-            );
+            // 1. Search (Nombre, Marca o Descripción)
+            const matchesSearch = !term || 
+                (p.name || '').toLowerCase().includes(term) || 
+                (p.brand || '').toLowerCase().includes(term) ||
+                (p.descripcion || '').toLowerCase().includes(term);
 
-            // Género: permitir includes para mayor flexibilidad (por ejemplo 'hombre' dentro de 'Hombre y Unisex')
-            const prodGenero = ((product.genero || product.gender || product.category) || '').toLowerCase();
-            const matchGender = selectedGenders.length === 0 || selectedGenders.some(g => prodGenero.includes(g));
+            // 2. Género
+            const matchesGender = selectedGenders.length === 0 || selectedGenders.includes(p.genero || p.category);
 
-            // Familia olfativa: permitir includes
-            const prodFamilia = (product.familia_olfativa || product.family || '').toLowerCase();
-            const matchFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => prodFamilia.includes(f));
+            // 3. Familia
+            const matchesFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => (p.familia_olfativa || '').includes(f));
 
-            const matchPrice = Number(price) >= Number(minPrice) && Number(price) <= Number(maxPrice);
+            // 4. Precio
+            const matchesPrice = price >= minPrice && price <= maxPrice;
 
-            return matchSearch && matchGender && matchFamily && matchPrice;
+            return matchesSearch && matchesGender && matchesFamily && matchesPrice;
         });
 
-        // 3. Reiniciar a página 1 y aplicar orden actual
-        this.currentPage = 1;
-        // Limpiar contenedor antes de renderizar
-        const container = document.getElementById('product-grid-main');
-        if (container) container.innerHTML = '';
-        this.applySort(false); // false para no re-renderizar doble
+        // C. Aplicar Ordenamiento actual a los resultados filtrados
+        this.applySort();
+
+        // D. Renderizar
         this.renderProducts();
         this.updateResultCount();
     }
 
-    applySort(render = true) {
+    applySort() {
         const sortValue = document.getElementById('sort-select')?.value || 'popularidad';
-        // Helper precio (asegurar Number)
-        const getPrice = p => {
-            try {
-                return Number(p.decant_prices?.['2ml'] ?? p.price50ml ?? 0) || 0;
-            } catch (e) { return 0; }
-        };
+        
+        // Helper para precio
+        const getPrice = (p) => (p.decant_prices?.['2ml'] || p.price50ml || 0);
 
         if (sortValue === 'precio-ascendente') {
             this.filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
@@ -176,128 +152,131 @@ class ShopManager {
             this.filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
         } else if (sortValue === 'alfabetico') {
             this.filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        } else {
+            // Popularidad / Defecto (por ID o orden original)
+            this.filteredProducts.sort((a, b) => String(a.id).localeCompare(String(b.id)));
         }
-        // Popularidad = orden por defecto del array (o id)
+    }
+
+    handlePaginationClick(e) {
+        const link = e.target.closest('.page-link');
+        if (!link || link.parentElement.classList.contains('disabled')) return;
         
-        if (render) this.renderProducts();
+        e.preventDefault();
+        
+        const action = link.dataset.action;
+        const page = link.dataset.page;
+        const totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
+
+        if (action === 'prev' && this.currentPage > 1) {
+            this.currentPage--;
+        } else if (action === 'next' && this.currentPage < totalPages) {
+            this.currentPage++;
+        } else if (page) {
+            this.currentPage = parseInt(page);
+        }
+
+        this.renderProducts();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     renderProducts() {
-        const container = document.getElementById('product-grid-main');
-        if (!container) return;
-        // Limpieza de renderizado antes de mostrar productos
-        container.innerHTML = '';
+        const grid = document.getElementById('product-grid-main');
+        if (!grid) return;
+        
+        grid.innerHTML = '';
 
-        // Asegurar que currentPage esté en rango
-        const totalPages = Math.max(1, Math.ceil(this.filteredProducts.length / this.productsPerPage));
-        if (this.currentPage > totalPages) this.currentPage = totalPages;
-        if (this.currentPage < 1) this.currentPage = 1;
-
-        // Paginación lógica
+        // Paginación
         const start = (this.currentPage - 1) * this.productsPerPage;
         const end = start + this.productsPerPage;
-        const visibleProducts = this.filteredProducts.slice(start, end);
+        const visibleItems = this.filteredProducts.slice(start, end);
 
-        // Sin resultados
-        if (visibleProducts.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5"><h3>No se encontraron productos</h3></div>';
-            this.renderPaginationUI();
+        if (visibleItems.length === 0) {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <h4 class="text-muted">No encontramos perfumes con esos filtros.</h4>
+                    <button class="btn btn-outline-dark mt-2" onclick="window.location.reload()">Ver todos</button>
+                </div>`;
+            this.renderPaginationUI(0);
             return;
         }
 
-        // Generar HTML
-        visibleProducts.forEach(product => {
-            container.innerHTML += this.createProductCard(product);
+        visibleItems.forEach(product => {
+            grid.innerHTML += this.createProductCard(product);
         });
 
-        this.renderPaginationUI();
-        // Actualizar contador de resultados
-        this.updateResultCount();
+        this.renderPaginationUI(Math.ceil(this.filteredProducts.length / this.productsPerPage));
     }
 
     createProductCard(product) {
-        // Determinar precio y e imagen
-        const price = (product.decant_prices?.['2ml'] || product.price50ml || 0).toLocaleString('es-CR');
-        let img = product.image || 'images/product-item1.jpg';
-        if (!img.startsWith('http') && !img.startsWith('images/')) img = 'images/' + img;
+        // Precio y foto seguros
+        const priceVal = (product.decant_prices?.['2ml'] || product.price50ml || 0);
+        const price = priceVal.toLocaleString('es-CR');
+        
+        let img = product.image || 'images/placeholder.png';
+        // Corrección de rutas de imágenes
+        if (!img.startsWith('http') && !img.startsWith('images/') && !img.startsWith('/')) {
+            img = 'images/' + img;
+        }
 
         return `
         <div class="col-6 col-md-4 col-lg-3 mb-4">
             <div class="card product-card h-100 border-0 shadow-sm">
-                <a href="product.html?id=${product.id}" class="d-block text-center position-relative">
-                    <img src="${img}" class="card-img-top product-image" alt="${product.name}" 
-                         style="height: 200px; object-fit: contain; padding: 10px;"
-                         onerror="this.src='images/product-item1.jpg'">
+                <a href="product.html?id=${product.id}" class="d-block position-relative overflow-hidden">
+                    <img src="${img}" class="card-img-top product-image" alt="${product.name}"
+                         style="aspect-ratio: 1/1; object-fit: contain; padding: 1rem;"
+                         onerror="this.src='images/placeholder.png'">
+                    ${product.decant_prices ? '<span class="badge bg-dark position-absolute top-0 start-0 m-2">Decants</span>' : ''}
                 </a>
-                <div class="card-body p-3 text-center">
-                    <p class="text-muted small mb-1">${product.brand || 'Munish'}</p>
-                    <h6 class="mb-2 text-truncate">
-                        <a href="product.html?id=${product.id}" class="text-dark text-decoration-none">${product.name}</a>
+                <div class="card-body p-3 text-center d-flex flex-column">
+                    <p class="text-muted small mb-1 text-uppercase">${product.brand || 'Munish'}</p>
+                    <h6 class="card-title text-truncate mb-2">
+                        <a href="product.html?id=${product.id}" class="text-dark text-decoration-none fw-bold">${product.name}</a>
                     </h6>
-                    <div class="text-primary fw-bold mb-2">₡${price}</div>
-                    <a href="product.html?id=${product.id}" class="btn btn-outline-dark btn-sm w-100">Ver Detalles</a>
+                    <div class="mt-auto">
+                        <p class="text-primary fw-bold mb-2">Desde ₡${price}</p>
+                        <a href="product.html?id=${product.id}" class="btn btn-outline-dark btn-sm w-100">Ver Opciones</a>
+                    </div>
                 </div>
             </div>
         </div>`;
     }
 
-    renderPaginationUI() {
-        const pagination = document.querySelector('.pagination');
-        if (!pagination) return;
-
-        const totalPages = Math.ceil(this.filteredProducts.length / this.productsPerPage);
-
-        // Si no hay páginas o solo hay 1, ocultar paginación o dejarla mínima
+    renderPaginationUI(totalPages) {
+        const nav = document.querySelector('.pagination');
+        if (!nav) return;
+        
         if (totalPages <= 1) {
-            pagination.innerHTML = '';
+            nav.innerHTML = '';
             return;
         }
 
-        let html = '';
+        let html = `
+            <li class="page-item ${this.currentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-action="prev">«</a>
+            </li>
+        `;
 
-        // Botón Anterior
-        const prevDisabled = this.currentPage === 1 ? 'disabled' : '';
-        html += `<li class="page-item ${prevDisabled}">
-                    <a class="page-link" href="#" data-action="prev" aria-label="Anterior">&laquo;</a>
-                 </li>`;
-
-        // Si hay 4 páginas o menos, mostrar todos los números
-        if (totalPages <= 4) {
-            for (let i = 1; i <= totalPages; i++) {
-                const active = i === this.currentPage ? 'active' : '';
-                html += `<li class="page-item ${active}">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                         </li>`;
-            }
-        } else {
-            // Números de Página (Lógica inteligente para no mostrar 100 números)
-            // Mostramos: 1, ..., actual-1, actual, actual+1, ..., ultimo
-            for (let i = 1; i <= totalPages; i++) {
-                if (
-                    i === 1 ||
-                    i === totalPages ||
-                    (i >= this.currentPage - 1 && i <= this.currentPage + 1)
-                ) {
-                    const active = i === this.currentPage ? 'active' : '';
-                    html += `<li class="page-item ${active}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
-                             </li>`;
-                } else if (
-                    i === this.currentPage - 2 ||
-                    i === this.currentPage + 2
-                ) {
-                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-                }
+        for (let i = 1; i <= totalPages; i++) {
+            // Lógica para mostrar solo algunas páginas si hay muchas (1,2,..,Actual,..,Ultima)
+            if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) {
+                html += `
+                    <li class="page-item ${i === this.currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>
+                `;
+            } else if (i === this.currentPage - 2 || i === this.currentPage + 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
         }
 
-        // Botón Siguiente
-        const nextDisabled = this.currentPage === totalPages ? 'disabled' : '';
-        html += `<li class="page-item ${nextDisabled}">
-                    <a class="page-link" href="#" data-action="next" aria-label="Siguiente">&raquo;</a>
-                 </li>`;
+        html += `
+            <li class="page-item ${this.currentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-action="next">»</a>
+            </li>
+        `;
 
-        pagination.innerHTML = html;
+        nav.innerHTML = html;
     }
 
     updateResultCount() {
@@ -306,5 +285,5 @@ class ShopManager {
     }
 }
 
-// Iniciar
+// Iniciar sistema
 window.shopManager = new ShopManager();
