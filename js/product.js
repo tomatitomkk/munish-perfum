@@ -36,7 +36,9 @@
       price50ml: p.price50ml || 0,
       price100ml: p.price100ml || 0,
       variants: [ { label: '50ml', price: p.price50ml||0 }, { label: '100ml', price: p.price100ml||0 } ],
-      stock: p.stock != null ? p.stock : 0
+      stock: p.stock != null ? p.stock : 0,
+      // IMPORTANTE: Asegurar que pasamos los precios especiales si existen
+      decant_prices: p.decant_prices || null 
     };
   }
 
@@ -138,13 +140,32 @@
     const p=DB.getProductById(id); 
     if(!p) return; 
     UI.updateElement('.product-title',p.name||''); 
-    UI.updateElement('.current-price', UI.formatMoney(p.price50ml||0)); 
+    
+    // --- LÓGICA AÑADIDA: Mostrar precio inicial correcto ---
+    let initialPrice = p.price50ml || 0;
+    if(p.decant_prices && p.decant_prices['2ml']) {
+        initialPrice = p.decant_prices['2ml'];
+    }
+    UI.updateElement('.current-price', UI.formatMoney(initialPrice));
+    // -----------------------------------------------------
+
     UI.updateElement('.product-description', p.description||''); 
     const main = document.getElementById('mainImage'); 
     if(main && p.image) main.src = p.image;
     
+    // --- LÓGICA AÑADIDA: Inyectar datos al botón ---
+    const btn = document.querySelector('.btn-add-to-cart');
+    if(btn) {
+        btn.dataset.productId = p.id; // ¡Esto faltaba!
+        btn.dataset.size = 'Botella Completa'; // Valor por defecto
+    }
+    // ----------------------------------------------
+
     // Inicializar evento para cambios de tamaño
     initializeSizeSelector(p);
+    
+    // --- LÓGICA AÑADIDA: Inicializar selector de cantidad ---
+    initializeQuantitySelector();
   }
 
   function initializeSizeSelector(product) {
@@ -152,18 +173,55 @@
     sizeInputs.forEach(input => {
       input.addEventListener('change', function() {
         updatePriceDisplay(product, this.value);
+        
+        // --- LÓGICA AÑADIDA: Actualizar botón al cambiar tamaño ---
+        const btn = document.querySelector('.btn-add-to-cart');
+        if(btn) {
+            // Mapeo amigable para el carrito
+            const labels = {
+                'botella-completa': 'Botella Completa',
+                'decant-2ml': 'Decant 2ml',
+                'decant-3ml': 'Decant 3ml',
+                'decant-5ml': 'Decant 5ml',
+                'decant-10ml': 'Decant 10ml'
+            };
+            btn.dataset.size = labels[this.value] || this.value;
+        }
+        // ---------------------------------------------------------
       });
     });
+  }
+
+  // --- FUNCIÓN NUEVA: Manejar input de cantidad ---
+  function initializeQuantitySelector() {
+      const qInput = document.getElementById('quantity');
+      const btn = document.querySelector('.btn-add-to-cart');
+      if(qInput && btn) {
+          qInput.addEventListener('change', function() {
+              btn.dataset.quantity = this.value;
+          });
+      }
   }
 
   function updatePriceDisplay(product, selectedSize) {
     let price = product.price50ml || 0; // Default price
     
+    // --- LÓGICA MEJORADA DE PRECIOS ---
+    // Convertir a clave simple
+    let sizeKey = null;
+    if (selectedSize.includes('2ml')) sizeKey = '2ml';
+    else if (selectedSize.includes('3ml')) sizeKey = '3ml';
+    else if (selectedSize.includes('5ml')) sizeKey = '5ml';
+    else if (selectedSize.includes('10ml')) sizeKey = '10ml';
+
     if (selectedSize === 'botella-completa') {
       price = product.price50ml || 0;
+    } else if (sizeKey && product.decant_prices && product.decant_prices[sizeKey]) {
+      price = product.decant_prices[sizeKey]; // Usar precio específico del producto
     } else if (DECANT_PRICES[selectedSize]) {
-      price = DECANT_PRICES[selectedSize];
+      price = DECANT_PRICES[selectedSize]; // Fallback
     }
+    // ----------------------------------
     
     UI.updateElement('.current-price', UI.formatMoney(price));
   }
@@ -227,6 +285,10 @@ window.increaseQuantity = function(){
     if(p && p.stock!=null) v=Math.min(v,p.stock); 
   } 
   q.value=v; 
+  
+  // --- AÑADIDO: Actualizar data del botón ---
+  const btn = document.querySelector('.btn-add-to-cart');
+  if(btn) btn.dataset.quantity = v;
 };
 
 window.decreaseQuantity = function(){ 
@@ -235,11 +297,28 @@ window.decreaseQuantity = function(){
   let v=parseInt(q.value||'1',10)||1; 
   v=Math.max(1,v-1); 
   q.value=v; 
+  
+  // --- AÑADIDO: Actualizar data del botón ---
+  const btn = document.querySelector('.btn-add-to-cart');
+  if(btn) btn.dataset.quantity = v;
 };
 
+// La función addToCart antigua ya no es necesaria si usamos el listener de cart.js
+// Pero la dejamos por compatibilidad si tienes onclick="..." en el HTML
 window.addToCart = function(idArg){ 
   const pid = idArg || (new URLSearchParams(window.location.search)).get('id'); 
   if(!pid) return; 
+  
+  // Intentar usar el sistema nuevo de Cart primero
+  if(window.Cart && window.Cart.addItem) {
+      const btn = document.querySelector('.btn-add-to-cart');
+      const size = (btn && btn.dataset.size) ? btn.dataset.size : 'Botella Completa';
+      const qty = (btn && btn.dataset.quantity) ? parseInt(btn.dataset.quantity) : 1;
+      window.Cart.addItem(pid, size, qty);
+      return;
+  }
+  
+  // ... (tu código antiguo de fallback sigue aquí abajo igual) ...
   const p = window.DB ? window.DB.getProductById(pid) : null; 
   if(!p){ 
     alert('Producto no encontrado.'); 
@@ -248,28 +327,18 @@ window.addToCart = function(idArg){
   
   const q = document.getElementById('quantity'); 
   const qty = parseInt(q && q.value ? q.value : 1, 10) || 1;
-  
-  // Obtener el tamaño seleccionado
   const selectedSize = window.getSelectedSize ? window.getSelectedSize() : 'botella-completa';
   const sizeLabel = window.getSizeLabel ? window.getSizeLabel(selectedSize) : selectedSize;
-  const size = sizeLabel; // Use the label for cart display
-  
-  // Obtener el precio correcto según el tamaño seleccionado
+  const size = sizeLabel; 
   const price = window.getSizePrice ? window.getSizePrice(selectedSize, p) : (p.price50ml || 0);
   
-  if(window.Cart && typeof window.Cart.addItem === 'function'){ 
-    window.Cart.addItem(p.id, size, qty); 
-  } else if(window.DB){ 
+  if(window.DB){ 
     const cart = window.DB.read(CART_STORAGE_KEY) || []; 
-    
-    // Verificar si el producto con el mismo tamaño ya existe
     const existingIndex = cart.findIndex(item => String(item.id) === String(p.id) && item.size === size);
     
     if (existingIndex > -1) {
-      // Actualizar cantidad si ya existe
-      cart[existingIndex].quantity += qty;
+      cart[existingItemIndex].quantity += qty;
     } else {
-      // Agregar nuevo item
       cart.push({ 
         id: p.id, 
         name: p.name, 

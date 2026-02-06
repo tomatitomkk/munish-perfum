@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="css/product.css">
 </head>
 <body style="background-color: #F0F8FF;">
-    <!-- Header -->
     <header class="navbar navbar-expand-lg navbar-light sticky-top" style="background-color: #0066FF; box-shadow: 0 4px 12px rgba(0, 102, 255, 0.15);">
         <div class="container">
             <a href="index.html" class="navbar-brand fw-bold fs-5" style="color: #FFFFFF !important;">Munish Perfum</a>
@@ -28,35 +27,28 @@
     </header>
 
     <main class="py-5">
-        <!-- Error State -->
         <div id="product-not-found" class="container alert alert-warning d-none">
             <p class="mb-0">❌ Producto no encontrado. <a href="shop.html">Volver a Tienda</a></p>
         </div>
 
-        <!-- Product Detail -->
         <div id="product-detail" class="d-none">
-            <!-- Image + Buy Section -->
             <section class="container mb-5">
                 <div class="row g-4">
-                    <!-- Image Column -->
                     <div class="col-lg-5">
                         <div class="product-image-container position-relative bg-white rounded-lg shadow-sm p-4" id="image-container">
                             <img id="product-image" src="images/placeholder.png" alt="Imagen" class="img-fluid mx-auto d-block" style="max-height: 500px;">
                         </div>
                     </div>
 
-                    <!-- Buy Column -->
                     <div class="col-lg-7">
                         <h1 id="product-name" class="display-5 fw-bold mb-2"></h1>
                         <p id="product-brand" class="lead text-muted mb-1"></p>
                         <p id="product-family" class="text-secondary mb-4"></p>
 
-                        <!-- Ratings placeholder -->
                         <div class="mb-4">
                             <span class="text-warning">★★★★★</span> <span class="text-muted small">(12 reseñas)</span>
                         </div>
 
-                        <!-- Prices -->
                         <div class="mb-4 p-3 bg-white rounded border">
                             <div class="row">
                                 <div class="col-6">
@@ -70,7 +62,6 @@
                             </div>
                         </div>
 
-                        <!-- Decant Selector -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Selecciona el Tamaño</label>
                             <div class="decant-buttons d-flex gap-2 flex-wrap">
@@ -93,15 +84,15 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
                         <div class="d-grid gap-2 mb-4">
-                            <button id="buy-now" class="btn btn-buy btn-lg fw-bold">Comprar Ya</button>
+                            <button class="btn btn-dark btn-lg w-100 btn-add-to-cart">
+                                Añadir al Carrito
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Tabs Section -->
             <section class="container mb-5">
                 <ul class="nav nav-tabs border-bottom" id="productTabs" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -122,7 +113,6 @@
                 </ul>
 
                 <div class="tab-content mt-4" id="productTabContent">
-                    <!-- Tab 1: Descripción -->
                     <div class="tab-pane fade show active" id="desc-content" role="tabpanel">
                         <div class="row g-4">
                             <div class="col-lg-7">
@@ -148,7 +138,6 @@
                         </div>
                     </div>
 
-                    <!-- Tab 2: Detalles Técnicos -->
                     <div class="tab-pane fade" id="tech-content" role="tabpanel">
                         <div class="row">
                             <div class="col-md-6">
@@ -174,7 +163,6 @@
                         </div>
                     </div>
 
-                    <!-- Tab 3: Reseñas -->
                     <div class="tab-pane fade" id="reviews-content" role="tabpanel">
                         <div class="row g-3">
                             <div class="col-lg-8">
@@ -194,7 +182,6 @@
                 </div>
             </section>
 
-            <!-- También te puede interesar -->
             <section class="container mb-5">
                 <h3 class="fw-bold mb-4">También te puede interesar</h3>
                 <div class="row g-4" id="recommendations"></div>
@@ -202,7 +189,6 @@
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
             <p class="mb-0">&copy; 2026 Munish Perfum. Todos los derechos reservados.</p>
@@ -212,6 +198,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/products.js"></script>
     <script src="js/cart.js"></script>
-    <script src="js/product-detail.js"></script>
+    <script src="js/product.js"></script>
 </body>
 </html>

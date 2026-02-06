@@ -37,7 +37,14 @@ const Cart = {
 
     // Agregar producto al carrito
     addItem(productId, size = 'Botella Completa', quantity = 1) {
-        const product = Inventory.getById(productId);
+        // CORRECCIÓN: Buscar producto en la base de datos global (PRODUCTS) o Inventory
+        let product = null;
+        if (typeof window.PRODUCTS !== 'undefined') {
+            product = window.PRODUCTS.find(p => p.id === productId);
+        } else if (typeof Inventory !== 'undefined') {
+            product = Inventory.getById(productId);
+        }
+
         if (!product) {
             console.error('Producto no encontrado');
             return false;
@@ -52,10 +59,25 @@ const Cart = {
         const cart = this.getCart();
         let price = product.price50ml || 0; // Default price
 
-        // Determinar el precio basado en el tamaño
+        // CORRECCIÓN: Lógica de precios para priorizar el precio específico del producto
+        
+        // 1. Normalizar clave del tamaño (ej: "Decant 2ml" -> "2ml")
+        let sizeKey = null;
+        if (size.includes('2ml')) sizeKey = '2ml';
+        else if (size.includes('3ml')) sizeKey = '3ml';
+        else if (size.includes('5ml')) sizeKey = '5ml';
+        else if (size.includes('10ml')) sizeKey = '10ml';
+
+        // 2. Determinar el precio exacto
         if (size === 'Botella Completa' || size === 'botella-completa') {
             price = product.price50ml || 0;
-        } else if (this.DECANT_PRICES[size]) {
+        } 
+        // PRIORIDAD: Precio específico definido en products.js
+        else if (sizeKey && product.decant_prices && product.decant_prices[sizeKey]) {
+            price = product.decant_prices[sizeKey];
+        } 
+        // FALLBACK: Precio genérico estándar
+        else if (this.DECANT_PRICES[size]) {
             price = this.DECANT_PRICES[size];
         }
         
@@ -100,8 +122,15 @@ const Cart = {
 
         if (itemIndex === -1) return false;
 
-        const product = Inventory.getById(productId);
-        if (newQuantity > product.stock) {
+        // Búsqueda robusta del producto para verificar stock
+        let product = null;
+        if (typeof window.PRODUCTS !== 'undefined') {
+            product = window.PRODUCTS.find(p => p.id === productId);
+        } else if (typeof Inventory !== 'undefined') {
+            product = Inventory.getById(productId);
+        }
+
+        if (product && newQuantity > product.stock) {
             alert('No hay suficiente stock disponible.');
             return false;
         }
