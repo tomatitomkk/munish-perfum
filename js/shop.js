@@ -112,8 +112,8 @@ class ShopManager {
     applyFilters() {
         // 1. Leer valores del DOM
         const searchTerm = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
-        const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(el => el.value);
-        const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(el => el.value);
+        const selectedGenders = Array.from(document.querySelectorAll('.filter-gender:checked')).map(el => el.value.toLowerCase());
+        const selectedFamilies = Array.from(document.querySelectorAll('.filter-family:checked')).map(el => el.value.toLowerCase());
         const minPrice = parseFloat(document.getElementById('price-min')?.value) || 0;
         const maxPrice = parseFloat(document.getElementById('price-max')?.value) || 999999;
 
@@ -123,14 +123,22 @@ class ShopManager {
             let price = 0;
             if (product.decant_prices && product.decant_prices['2ml']) price = product.decant_prices['2ml'];
             else if (product.price50ml) price = product.price50ml;
-            
+
+            // Preparar campos para comparación (soporte retrocompatible)
+            const prodName = (product.name || '').toLowerCase();
+            const prodBrand = (product.brand || '').toLowerCase();
+            const prodDescripcion = (product.descripcion || '').toLowerCase();
+            const prodGenero = ((product.genero || product.gender || product.category) || '').toLowerCase();
+            const prodFamilia = (product.familia_olfativa || '').toLowerCase();
+
             // Condiciones
             const matchSearch = !searchTerm || (
-                (product.name || '').toLowerCase().includes(searchTerm) || 
-                (product.brand || '').toLowerCase().includes(searchTerm)
+                prodName.includes(searchTerm) ||
+                prodBrand.includes(searchTerm) ||
+                prodDescripcion.includes(searchTerm)
             );
-            const matchGender = selectedGenders.length === 0 || selectedGenders.includes(product.category);
-            const matchFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => (product.familia_olfativa || '').includes(f));
+            const matchGender = selectedGenders.length === 0 || selectedGenders.includes(prodGenero);
+            const matchFamily = selectedFamilies.length === 0 || selectedFamilies.some(f => prodFamilia.includes(f));
             const matchPrice = price >= minPrice && price <= maxPrice;
 
             return matchSearch && matchGender && matchFamily && matchPrice;
