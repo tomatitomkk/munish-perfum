@@ -240,7 +240,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Otoño", "Invierno"],
         full_bottle_price: "Consultar",
-        image: "images/360-Red.png",
+        image: "images/380-red.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -368,7 +368,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Gold.png",
+        image: "images/guess-gold.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -386,7 +386,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Otoño", "Invierno"],
         full_bottle_price: "Consultar",
-        image: "images/Seductive.png",
+        image: "images/guess-seductive.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -404,7 +404,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Tradicional-Mujer-Guess.png",
+        image: "images/guess-tradicional-mujer.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
 
@@ -442,7 +442,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/Meow.png",
+        image: "images/Meow!-de-Katy-Perry.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -460,7 +460,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Fantasy.png",
+        image: "images/Fantasy-de-Britney-Spears.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -478,7 +478,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Otoño", "Invierno"],
         full_bottle_price: "Consultar",
-        image: "images/Midnight-Fantasy.png",
+        image: "images/Midnight-Fantasy-de-Britney-Spears.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -514,7 +514,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/Tommy-Hilfiger-Mujer.png",
+        image: "images/tommy-girl.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -572,7 +572,7 @@ const PRODUCTS = [
         duracion: "9-12 horas",
         estacion: ["Otoño", "Invierno"],
         full_bottle_price: "Consultar",
-        image: "images/Hawas-Men.png",
+        image: "images/hawas-for-Men.png",
         decant_prices: { "2ml": 1400, "3ml": 1600, "5ml": 2100, "10ml": 5000 }
     },
     {
@@ -590,7 +590,7 @@ const PRODUCTS = [
         duracion: "8-10 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/Hawas-Ice.png",
+        image: "images/Hawas-ice.png",
         decant_prices: { "2ml": 1400, "3ml": 1600, "5ml": 2100, "10ml": 5000 }
     },
     {
@@ -664,7 +664,7 @@ const PRODUCTS = [
         duracion: "7-9 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Yara-Tous.png",
+        image: "images/lattafa-yara-tous.png",
         decant_prices: { "2ml": 1300, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
 
@@ -684,7 +684,7 @@ const PRODUCTS = [
         duracion: "9-12 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Club-de-Nuit-Untold.png",
+        image: "images/armaf-club-de-nuit-untold.png",
         decant_prices: { "2ml": 1300, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -702,7 +702,7 @@ const PRODUCTS = [
         duracion: "9-12 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/Club-de-Nuit-Milestone.png",
+        image: "images/Decant-Club-de-Nuit-Milestone.png",
         decant_prices: { "2ml": 1300, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -720,7 +720,7 @@ const PRODUCTS = [
         duracion: "10-12 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/",
+        image: "images/Club-de-Nuit-Sillage.png",
         decant_prices: { "2ml": 1300, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     }
 ];
