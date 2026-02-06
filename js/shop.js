@@ -222,7 +222,7 @@ class ShopManager {
         return `
         <div class="col-6 col-md-4 col-lg-3 mb-4">
             <div class="card product-card h-100 border-0 shadow-sm">
-                <a href="product.html?id=${product.id}" class="d-block position-relative overflow-hidden">
+                <a href="single-product.html?id=${product.id}" class="d-block position-relative overflow-hidden">
                     <img src="${img}" class="card-img-top product-image" alt="${product.name}"
                          style="aspect-ratio: 1/1; object-fit: contain; padding: 1rem;"
                          onerror="this.src='images/placeholder.png'">
@@ -231,11 +231,11 @@ class ShopManager {
                 <div class="card-body p-3 text-center d-flex flex-column">
                     <p class="text-muted small mb-1 text-uppercase">${product.brand || 'Munish'}</p>
                     <h6 class="card-title text-truncate mb-2">
-                        <a href="product.html?id=${product.id}" class="text-dark text-decoration-none fw-bold">${product.name}</a>
+                        <a href="single-product.html?id=${product.id}" class="text-dark text-decoration-none fw-bold">${product.name}</a>
                     </h6>
                     <div class="mt-auto">
                         <p class="text-primary fw-bold mb-2">Desde ₡${price}</p>
-                        <a href="product.html?id=${product.id}" class="btn btn-outline-dark btn-sm w-100">Ver Opciones</a>
+                        <a href="single-product.html?id=${product.id}" class="btn btn-outline-dark btn-sm w-100">Ver Opciones</a>
                     </div>
                 </div>
             </div>
