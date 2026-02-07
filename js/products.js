@@ -258,7 +258,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/360-Blue.png",
+        image: "images/360-blue.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -276,7 +276,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/360-Green.png",
+        image: "images/360-green.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -294,7 +294,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/360-Pink.png",
+        image: "images/360-pink.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -312,7 +312,7 @@ const PRODUCTS = [
         duracion: "7-9 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/360-Purple.png",
+        image: "images/360-purple.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -330,7 +330,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Verano"],
         full_bottle_price: "Consultar",
-        image: "images/360-Coral.png",
+        image: "images/360-coral.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
     {
@@ -348,7 +348,7 @@ const PRODUCTS = [
         duracion: "6-8 horas",
         estacion: ["Total"],
         full_bottle_price: "Consultar",
-        image: "images/360-White.png",
+        image: "images/360-white.png",
         decant_prices: { "2ml": 1200, "3ml": 1600, "5ml": 2100, "10ml": 4000 }
     },
 
@@ -552,7 +552,7 @@ const PRODUCTS = [
         duracion: "7-9 horas",
         estacion: ["Primavera", "Verano"],
         full_bottle_price: "Consultar",
-        image: "images/Acqua-di-Gio-Profondo.png",
+        image: "images/acqua-di-gio-profondo.png",
         decant_prices: { "2ml": 1500, "3ml": 1600, "5ml": 2100, "10ml": 5000 }
     },
 
