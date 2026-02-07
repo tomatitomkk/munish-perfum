@@ -158,6 +158,7 @@
     if(btn) {
         btn.dataset.productId = p.id; // ¡Esto faltaba!
         btn.dataset.size = 'Botella Completa'; // Valor por defecto
+        btn.dataset.quantity = '1'; // Valor inicial
     }
     // ----------------------------------------------
 
@@ -273,34 +274,48 @@
 
 })();
 
-// Global functions (outside IIFE)
+// =========================================================
+// FUNCIONES GLOBALES FUERA DEL IIFE - CORREGIDAS
+// =========================================================
+
+// FUNCIÓN CORREGIDA: Incrementar cantidad
 window.increaseQuantity = function(){ 
   const q=document.getElementById('quantity'); 
   if(!q) return; 
+  
   let v=parseInt(q.value||'1',10)||1; 
   v++; 
+  
   const id=(new URLSearchParams(window.location.search)).get('id'); 
   if(id && window.DB){ 
     const p=window.DB.getProductById(id); 
     if(p && p.stock!=null) v=Math.min(v,p.stock); 
   } 
+  
   q.value=v; 
   
-  // --- AÑADIDO: Actualizar data del botón ---
+  // ACTUALIZAR DATA DEL BOTÓN
   const btn = document.querySelector('.btn-add-to-cart');
   if(btn) btn.dataset.quantity = v;
+  
+  console.log('Cantidad incrementada a:', v);
 };
 
+// FUNCIÓN CORREGIDA: Decrementar cantidad
 window.decreaseQuantity = function(){ 
   const q=document.getElementById('quantity'); 
   if(!q) return; 
+  
   let v=parseInt(q.value||'1',10)||1; 
   v=Math.max(1,v-1); 
+  
   q.value=v; 
   
-  // --- AÑADIDO: Actualizar data del botón ---
+  // ACTUALIZAR DATA DEL BOTÓN
   const btn = document.querySelector('.btn-add-to-cart');
   if(btn) btn.dataset.quantity = v;
+  
+  console.log('Cantidad decrementada a:', v);
 };
 
 // La función addToCart antigua ya no es necesaria si usamos el listener de cart.js
@@ -363,7 +378,7 @@ window.addToCart = function(idArg){
 };
 
 // =========================================================
-// CORRECCIÓN CRÍTICA AQUÍ ABAJO
+// CORRECCIÓN CRÍTICA PARA shop.html
 // =========================================================
 window.addEventListener('load', function(){ 
   try{ if(window.DB && typeof window.DB.init==='function') window.DB.init(); }catch(e){} 
