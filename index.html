@@ -18,6 +18,59 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@200;300;400;500;600;700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <style>
+      /* Video player styles */
+      .video-player-container {
+        position: relative;
+        width: 100%;
+        max-height: 600px;
+        overflow: hidden;
+        background: #000;
+      }
+      .video-player-container video {
+        width: 100%;
+        height: auto;
+        max-height: 600px;
+        display: block;
+        object-fit: cover;
+      }
+      .video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.3);
+        transition: opacity 0.3s ease;
+        cursor: pointer;
+      }
+      .video-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .play-btn {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease, background 0.3s ease;
+      }
+      .play-btn:hover {
+        transform: scale(1.1);
+        background: rgba(255, 255, 255, 1);
+      }
+      .play-btn svg {
+        width: 40px;
+        height: 40px;
+        fill: #0066FF;
+      }
+    </style>
   </head>
   <body class="bg-body" data-bs-spy="scroll" data-bs-target="#navbar" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" tabindex="0">
     
@@ -188,15 +241,18 @@
       <div class="container-lg">
         <div class="row">
           <div class="col-12">
-            <div class="video-content position-relative">
-              <div class="video-bg">
-                <img src="images/video-item.jpg" alt="Video cover" class="img-fluid w-100 object-fit-cover" style="max-height: 600px;">
+            <div class="video-player-container">
+              <video id="munishVideo" poster="images/video-item.jpg" preload="metadata">
+                <source src="images/videoplayback.mp4" type="video/mp4">
+                Tu navegador no soporta el reproductor de video HTML5.
+              </video>
+              <div class="video-overlay" id="videoOverlay">
+                <button type="button" class="play-btn" id="playButton" aria-label="Reproducir video">
+                  <svg viewBox="0 0 32 32">
+                    <use xlink:href="#play"></use>
+                  </svg>
+                </button>
               </div>
-              <button type="button" class="play-btn position-absolute top-50 start-50 translate-middle bg-transparent border-0" aria-label="Play video">
-                <svg width="80" height="80" class="text-white">
-                  <use xlink:href="#play"></use>
-                </svg>
-              </button>
             </div>
           </div>
         </div>
@@ -210,7 +266,7 @@
             <div class="swiper-slide text-center">
               <div class="testimonial-item mx-auto" style="max-width: 700px;">
                 <svg width="40" height="40" class="text-primary mb-4"><use xlink:href="#quote"></use></svg>
-                <p class="fs-4 fst-italic mb-4">"Los perfumes de Munish son simplemente excepcionales. La duración y la calidad de las fragancias superaron todas mis expectativas."</p>
+                <p class="fs-4 fst-italic mb-4">"¡Los perfumes de Munish son simplemente excepcionales. La duración y la calidad de las fragancias superaron todas mis expectativas."</p>
                 <h5 class="text-uppercase">Ana García</h5>
               </div>
             </div>
@@ -423,5 +479,49 @@
     <script src="js/cart.js"></script>
     
     <script src="js/script.js"></script>
+
+    <!-- Video Player Script -->
+    <script>
+      (function() {
+        const video = document.getElementById('munishVideo');
+        const overlay = document.getElementById('videoOverlay');
+        const playButton = document.getElementById('playButton');
+        
+        if (!video || !overlay || !playButton) return;
+        
+        // Play video when clicking the play button or overlay
+        function playVideo() {
+          video.play();
+          overlay.classList.add('hidden');
+        }
+        
+        playButton.addEventListener('click', playVideo);
+        overlay.addEventListener('click', playVideo);
+        
+        // Show overlay when video is paused
+        video.addEventListener('pause', function() {
+          overlay.classList.remove('hidden');
+        });
+        
+        // Hide overlay when video starts playing
+        video.addEventListener('play', function() {
+          overlay.classList.add('hidden');
+        });
+        
+        // Show overlay when video ends
+        video.addEventListener('ended', function() {
+          overlay.classList.remove('hidden');
+        });
+        
+        // Show/hide controls on video click
+        video.addEventListener('click', function() {
+          if (video.paused) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
