@@ -176,7 +176,7 @@
                 price = 0;
             }
             
-            // 1. Filtro de BÚsqueda (nombre, marca, descripción)
+            // 1. Filtro de Búsqueda (nombre, marca, descripción)
             let matchesSearch = true;
             if (searchTerm) {
                 const name = (product.name || '').toLowerCase();
@@ -348,8 +348,9 @@
                 </div>`;
         }
         
-        // Renderizar paginación
+        // CORREGIDO: Renderizar paginación con cálculo correcto
         const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+        console.log('Total de páginas calculadas:', totalPages);
         renderPagination(totalPages);
     }
     
@@ -449,27 +450,40 @@
     }
     
     // ====================
-    // PAGINACIÓN
+    // PAGINACIÓN - VERSIÓN CORREGIDA
     // ====================
     function renderPagination(totalPages) {
         const nav = document.querySelector('.pagination');
-        if (!nav) return;
-        
-        if (totalPages <= 1) {
-            nav.innerHTML = '';
+        if (!nav) {
+            console.warn('No se encontró .pagination');
             return;
         }
+        
+        // Si no hay productos o solo hay 1 página, ocultar paginación
+        if (totalPages <= 1) {
+            nav.innerHTML = '';
+            console.log('Paginación ocultada (totalPages <= 1)');
+            return;
+        }
+        
+        console.log('%cRenderizando paginación: Página ' + currentPage + ' de ' + totalPages, 'color: blue');
         
         let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                         <a class="page-link" href="#" data-action="prev">«</a>
                     </li>`;
         
+        // LÓGICA MEJORADA: Evitar elipsis extraños
         for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            // Siempre mostrar: primera, última, actual, y vecinas
+            const isFirstOrLast = (i === 1 || i === totalPages);
+            const isNearCurrent = (i >= currentPage - 1 && i <= currentPage + 1);
+            
+            if (isFirstOrLast || isNearCurrent) {
                 html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
                             <a class="page-link" href="#" data-page="${i}">${i}</a>
                          </li>`;
             } else if (i === currentPage - 2 || i === currentPage + 2) {
+                // Solo agregar elipsis si hay un gap
                 html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
             }
         }
@@ -479,6 +493,7 @@
                  </li>`;
         
         nav.innerHTML = html;
+        console.log('%c✓ Paginación renderizada exitosamente', 'color: green');
     }
     
     function handlePaginationClick(e) {
@@ -499,6 +514,7 @@
             currentPage = parseInt(page);
         }
         
+        console.log('Navegando a página', currentPage);
         renderProducts();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
