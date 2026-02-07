@@ -1,5 +1,5 @@
 // ============================================================
-// SHOP.JS - VERSIÓN REFACTORIZADA Y GARANTIZADA
+// SHOP.JS - VERSIÓN BLINDADA CONTRA DATOS INCOMPLETOS
 // ============================================================
 
 (function() {
@@ -159,12 +159,21 @@
         
         // Filtrar productos
         filteredProducts = allProducts.filter(product => {
-            // Obtener precio del producto
+            // SAFE: Obtener precio del producto con validación
             let price = 0;
-            if (product.decant_prices && product.decant_prices['2ml']) {
-                price = product.decant_prices['2ml'];
-            } else if (product.price50ml) {
-                price = product.price50ml;
+            try {
+                if (product.decant_prices && typeof product.decant_prices === 'object') {
+                    price = product.decant_prices['2ml'] || product.decant_prices['3ml'] || 0;
+                }
+                if (price === 0 && product.price50ml) {
+                    price = product.price50ml;
+                }
+                if (price === 0 && product.full_bottle_price && typeof product.full_bottle_price === 'number') {
+                    price = product.full_bottle_price;
+                }
+            } catch (e) {
+                console.warn('Error obteniendo precio del producto:', product.id || product.name, e);
+                price = 0;
             }
             
             // 1. Filtro de BÚsqueda (nombre, marca, descripción)
@@ -217,24 +226,38 @@
         const sortValue = document.getElementById('sort-select')?.value || 'popularidad';
         console.log('Aplicando orden:', sortValue);
         
-        const getPrice = (p) => (p.decant_prices?.['2ml'] || p.price50ml || 0);
+        // SAFE: Función para obtener precio con validación
+        const getPrice = (p) => {
+            try {
+                if (p.decant_prices && typeof p.decant_prices === 'object') {
+                    return p.decant_prices['2ml'] || p.decant_prices['3ml'] || p.price50ml || 0;
+                }
+                return p.price50ml || 0;
+            } catch (e) {
+                return 0;
+            }
+        };
         
-        switch(sortValue) {
-            case 'precio-ascendente':
-                filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
-                console.log('Ordenado por precio ascendente');
-                break;
-            case 'precio-descendente':
-                filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
-                console.log('Ordenado por precio descendente');
-                break;
-            case 'alfabetico':
-                filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                console.log('Ordenado alfabéticamente');
-                break;
-            default: // popularidad
-                filteredProducts.sort((a, b) => String(a.id || '').localeCompare(String(b.id || '')));
-                console.log('Ordenado por popularidad (ID)');
+        try {
+            switch(sortValue) {
+                case 'precio-ascendente':
+                    filteredProducts.sort((a, b) => getPrice(a) - getPrice(b));
+                    console.log('Ordenado por precio ascendente');
+                    break;
+                case 'precio-descendente':
+                    filteredProducts.sort((a, b) => getPrice(b) - getPrice(a));
+                    console.log('Ordenado por precio descendente');
+                    break;
+                case 'alfabetico':
+                    filteredProducts.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    console.log('Ordenado alfabéticamente');
+                    break;
+                default: // popularidad
+                    filteredProducts.sort((a, b) => String(a.id || '').localeCompare(String(b.id || '')));
+                    console.log('Ordenado por popularidad (ID)');
+            }
+        } catch (e) {
+            console.error('Error en ordenamiento:', e);
         }
     }
     
@@ -261,6 +284,8 @@
             return;
         }
         
+        console.log('%c=== INICIANDO RENDERIZADO ===', 'color: blue; font-weight: bold');
+        
         // Limpiar grid
         grid.innerHTML = '';
         
@@ -270,6 +295,7 @@
         const visibleProducts = filteredProducts.slice(start, end);
         
         console.log('Renderizando página', currentPage, ':', visibleProducts.length, 'productos');
+        console.log('IDs de productos a renderizar:', visibleProducts.map(p => p.id || p.name).join(', '));
         
         // Si no hay productos
         if (visibleProducts.length === 0) {
@@ -282,45 +308,144 @@
             return;
         }
         
-        // Renderizar productos
-        visibleProducts.forEach(product => {
-            grid.innerHTML += createProductCard(product);
+        // NUEVO: Acumular HTML antes de inyectar (más seguro)
+        let htmlAccumulator = '';
+        let successCount = 0;
+        let errorCount = 0;
+        
+        visibleProducts.forEach((product, index) => {
+            try {
+                const cardHTML = createProductCard(product);
+                if (cardHTML && cardHTML.trim().length > 0) {
+                    htmlAccumulator += cardHTML;
+                    successCount++;
+                    console.log(`✓ Producto ${index + 1}/${visibleProducts.length} renderizado:`, product.name || product.id);
+                } else {
+                    console.warn(`⚠ Producto ${index + 1} generó HTML vacío:`, product.id || product.name);
+                    errorCount++;
+                }
+            } catch (error) {
+                console.error(`✗ ERROR renderizando producto ${index + 1}:`, product.id || product.name, error);
+                errorCount++;
+                // Continuar con el siguiente producto
+            }
         });
+        
+        console.log('%cRenderizado completado: ' + successCount + ' éxitos, ' + errorCount + ' errores', 
+                    errorCount > 0 ? 'color: orange; font-weight: bold' : 'color: green; font-weight: bold');
+        
+        // Inyectar HTML acumulado
+        if (htmlAccumulator.length > 0) {
+            grid.innerHTML = htmlAccumulator;
+            console.log('%c✓ HTML inyectado al DOM exitosamente', 'color: green');
+        } else {
+            console.error('%c✗ NO se generó HTML para inyectar', 'color: red');
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <h4 class="text-danger">Error al cargar productos</h4>
+                    <p class="text-muted">Por favor, revisa la consola para más detalles.</p>
+                    <button class="btn btn-outline-dark mt-2" onclick="location.reload()">Recargar página</button>
+                </div>`;
+        }
         
         // Renderizar paginación
         const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
         renderPagination(totalPages);
     }
     
+    // ====================
+    // CREACIÓN DE TARJETAS - VERSIÓN BLINDADA
+    // ====================
     function createProductCard(product) {
-        const price = (product.decant_prices?.['2ml'] || product.price50ml || 0).toLocaleString('es-CR');
-        
-        let img = product.image || 'images/placeholder.png';
-        if (!img.startsWith('http') && !img.startsWith('images/') && !img.startsWith('/')) {
-            img = 'images/' + img;
-        }
-        
-        return `
+        try {
+            // VALIDACIÓN: Asegurar que el producto tenga propiedades básicas
+            if (!product || typeof product !== 'object') {
+                console.error('Producto inválido (no es objeto):', product);
+                return '';
+            }
+            
+            // SAFE: Valores por defecto para todas las propiedades
+            const id = product.id || 'unknown-' + Date.now();
+            const name = product.name || 'Producto sin nombre';
+            const brand = product.brand || 'Munish';
+            
+            // SAFE: Obtener precio con múltiples fallbacks
+            let priceValue = 0;
+            try {
+                if (product.decant_prices && typeof product.decant_prices === 'object') {
+                    priceValue = product.decant_prices['2ml'] || 
+                                product.decant_prices['3ml'] || 
+                                product.decant_prices['5ml'] || 0;
+                }
+                if (priceValue === 0 && product.price50ml) {
+                    priceValue = product.price50ml;
+                }
+            } catch (e) {
+                console.warn('Error obteniendo precio:', e);
+                priceValue = 0;
+            }
+            
+            // SAFE: Formatear precio
+            let priceFormatted = '0';
+            try {
+                if (typeof priceValue === 'number' && priceValue > 0) {
+                    priceFormatted = priceValue.toLocaleString('es-CR');
+                } else {
+                    priceFormatted = 'Consultar';
+                }
+            } catch (e) {
+                console.warn('Error formateando precio:', e);
+                priceFormatted = String(priceValue);
+            }
+            
+            // SAFE: Imagen con validación
+            let img = product.image || 'images/placeholder.png';
+            try {
+                if (img && typeof img === 'string') {
+                    if (!img.startsWith('http') && !img.startsWith('images/') && !img.startsWith('/')) {
+                        img = 'images/' + img;
+                    }
+                } else {
+                    img = 'images/placeholder.png';
+                }
+            } catch (e) {
+                console.warn('Error procesando imagen:', e);
+                img = 'images/placeholder.png';
+            }
+            
+            // SAFE: Badge de decants
+            const hasDecants = product.decant_prices && typeof product.decant_prices === 'object';
+            const decantBadge = hasDecants ? '<span class="badge bg-dark position-absolute top-0 start-0 m-2">Decants</span>' : '';
+            
+            // CONSTRUIR HTML
+            const html = `
         <div class="col-6 col-md-4 col-lg-3 mb-4">
             <div class="card product-card h-100 border-0 shadow-sm">
-                <a href="single-product.html?id=${product.id}" class="d-block position-relative overflow-hidden">
-                    <img src="${img}" class="card-img-top product-image" alt="${product.name}"
+                <a href="single-product.html?id=${id}" class="d-block position-relative overflow-hidden">
+                    <img src="${img}" class="card-img-top product-image" alt="${name}"
                          style="aspect-ratio: 1/1; object-fit: contain; padding: 1rem;"
                          onerror="this.src='images/placeholder.png'">
-                    ${product.decant_prices ? '<span class="badge bg-dark position-absolute top-0 start-0 m-2">Decants</span>' : ''}
+                    ${decantBadge}
                 </a>
                 <div class="card-body p-3 text-center d-flex flex-column">
-                    <p class="text-muted small mb-1 text-uppercase">${product.brand || 'Munish'}</p>
+                    <p class="text-muted small mb-1 text-uppercase">${brand}</p>
                     <h6 class="card-title text-truncate mb-2">
-                        <a href="single-product.html?id=${product.id}" class="text-dark text-decoration-none fw-bold">${product.name}</a>
+                        <a href="single-product.html?id=${id}" class="text-dark text-decoration-none fw-bold">${name}</a>
                     </h6>
                     <div class="mt-auto">
-                        <p class="text-primary fw-bold mb-2">Desde ₡${price}</p>
-                        <a href="single-product.html?id=${product.id}" class="btn btn-outline-dark btn-sm w-100">Ver Opciones</a>
+                        <p class="text-primary fw-bold mb-2">Desde ₡${priceFormatted}</p>
+                        <a href="single-product.html?id=${id}" class="btn btn-outline-dark btn-sm w-100">Ver Opciones</a>
                     </div>
                 </div>
             </div>
         </div>`;
+            
+            return html;
+            
+        } catch (error) {
+            console.error('ERROR CRÍTICO en createProductCard:', error, 'Producto:', product);
+            return ''; // Retornar vacío en caso de error
+        }
     }
     
     // ====================
@@ -391,7 +516,7 @@
     // ====================
     // INICIAR SISTEMA
     // ====================
-    console.log('%cshop.js cargado', 'color: blue');
+    console.log('%cshop.js BLINDADO cargado', 'color: blue; font-weight: bold');
     init();
     
 })();
