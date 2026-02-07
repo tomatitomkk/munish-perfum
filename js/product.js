@@ -156,11 +156,19 @@
     // --- LÓGICA AÑADIDA: Inyectar datos al botón ---
     const btn = document.querySelector('.btn-add-to-cart');
     if(btn) {
-        btn.dataset.productId = p.id; // ¡Esto faltaba!
-        btn.dataset.size = 'Botella Completa'; // Valor por defecto
-        btn.dataset.quantity = '1'; // Valor inicial
+        btn.dataset.productId = p.id;
+        btn.dataset.size = 'Botella Completa';
+        btn.dataset.quantity = '1';
     }
     // ----------------------------------------------
+    
+    // --- NUEVO: Asegurar que el input de cantidad empiece en 1 ---
+    const qInput = document.getElementById('quantity');
+    if(qInput) {
+        qInput.value = '1';
+        console.log('Cantidad inicial establecida en:', qInput.value);
+    }
+    // --------------------------------------------------------------
 
     // Inicializar evento para cambios de tamaño
     initializeSizeSelector(p);
@@ -199,7 +207,12 @@
       const btn = document.querySelector('.btn-add-to-cart');
       if(qInput && btn) {
           qInput.addEventListener('change', function() {
-              btn.dataset.quantity = this.value;
+              // Validar que no sea menor a 1
+              let val = parseInt(this.value) || 1;
+              if(val < 1) val = 1;
+              this.value = val;
+              btn.dataset.quantity = val;
+              console.log('Cantidad cambiada manualmente a:', val);
           });
       }
   }
@@ -280,42 +293,68 @@
 
 // FUNCIÓN CORREGIDA: Incrementar cantidad
 window.increaseQuantity = function(){ 
-  const q=document.getElementById('quantity'); 
-  if(!q) return; 
+  const q = document.getElementById('quantity'); 
+  if(!q) {
+      console.error('No se encontró el input #quantity');
+      return;
+  }
   
-  let v=parseInt(q.value||'1',10)||1; 
-  v++; 
+  // CORREGIDO: Parsear correctamente y asegurar mínimo de 1
+  let currentValue = parseInt(q.value, 10);
+  if(isNaN(currentValue) || currentValue < 1) {
+      currentValue = 1;
+  }
   
-  const id=(new URLSearchParams(window.location.search)).get('id'); 
-  if(id && window.DB){ 
-    const p=window.DB.getProductById(id); 
-    if(p && p.stock!=null) v=Math.min(v,p.stock); 
-  } 
+  let newValue = currentValue + 1;
   
-  q.value=v; 
+  // Validar contra stock si existe
+  const id = (new URLSearchParams(window.location.search)).get('id'); 
+  if(id && window.DB) { 
+    const p = window.DB.getProductById(id); 
+    if(p && p.stock != null && p.stock > 0) {
+        newValue = Math.min(newValue, p.stock);
+    }
+  }
   
-  // ACTUALIZAR DATA DEL BOTÓN
+  // Actualizar input
+  q.value = newValue;
+  
+  // Actualizar data del botón
   const btn = document.querySelector('.btn-add-to-cart');
-  if(btn) btn.dataset.quantity = v;
+  if(btn) {
+      btn.dataset.quantity = newValue;
+  }
   
-  console.log('Cantidad incrementada a:', v);
+  console.log('✓ Cantidad incrementada a:', newValue);
 };
 
 // FUNCIÓN CORREGIDA: Decrementar cantidad
 window.decreaseQuantity = function(){ 
-  const q=document.getElementById('quantity'); 
-  if(!q) return; 
+  const q = document.getElementById('quantity'); 
+  if(!q) {
+      console.error('No se encontró el input #quantity');
+      return;
+  }
   
-  let v=parseInt(q.value||'1',10)||1; 
-  v=Math.max(1,v-1); 
+  // CORREGIDO: Parsear correctamente y asegurar mínimo de 1
+  let currentValue = parseInt(q.value, 10);
+  if(isNaN(currentValue) || currentValue < 1) {
+      currentValue = 1;
+  }
   
-  q.value=v; 
+  // Decrementar pero nunca bajar de 1
+  let newValue = Math.max(1, currentValue - 1);
   
-  // ACTUALIZAR DATA DEL BOTÓN
+  // Actualizar input
+  q.value = newValue;
+  
+  // Actualizar data del botón
   const btn = document.querySelector('.btn-add-to-cart');
-  if(btn) btn.dataset.quantity = v;
+  if(btn) {
+      btn.dataset.quantity = newValue;
+  }
   
-  console.log('Cantidad decrementada a:', v);
+  console.log('✓ Cantidad decrementada a:', newValue);
 };
 
 // La función addToCart antigua ya no es necesaria si usamos el listener de cart.js
@@ -333,7 +372,7 @@ window.addToCart = function(idArg){
       return;
   }
   
-  // ... (tu código antiguo de fallback sigue aquí abajo igual) ...
+  // Fallback al sistema antiguo
   const p = window.DB ? window.DB.getProductById(pid) : null; 
   if(!p){ 
     alert('Producto no encontrado.'); 
@@ -348,11 +387,11 @@ window.addToCart = function(idArg){
   const price = window.getSizePrice ? window.getSizePrice(selectedSize, p) : (p.price50ml || 0);
   
   if(window.DB){ 
-    const cart = window.DB.read(CART_STORAGE_KEY) || []; 
+    const cart = window.DB.read('fraganze_cart_v3') || []; 
     const existingIndex = cart.findIndex(item => String(item.id) === String(p.id) && item.size === size);
     
     if (existingIndex > -1) {
-      cart[existingItemIndex].quantity += qty;
+      cart[existingIndex].quantity += qty;
     } else {
       cart.push({ 
         id: p.id, 
@@ -364,7 +403,7 @@ window.addToCart = function(idArg){
       });
     }
     
-    window.DB.write(CART_STORAGE_KEY, cart); 
+    window.DB.write('fraganze_cart_v3', cart); 
     try{ 
       document.dispatchEvent(new CustomEvent('cartUpdated', {
         detail: {
