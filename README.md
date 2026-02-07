@@ -4,12 +4,15 @@
 
 [![GitHub Pages](https://img.shields.io/badge/hosted%20on-GitHub%20Pages-blue)](https://tomatitomkk.github.io/munish-perfum/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Last Updated](https://img.shields.io/badge/updated-Feb%202026-brightgreen)](https://github.com/tomatitomkk/munish-perfum)
 
 ---
 
 ## 🚀 **Demo en Vivo**
 
 🌐 **[Ver Tienda en Vivo](https://tomatitomkk.github.io/munish-perfum/)**
+
+> **Nota:** Si las imágenes no cargan inmediatamente, espera 2-3 minutos para que GitHub Pages actualice el CDN, luego presiona `Ctrl+Shift+R` para limpiar caché.
 
 ---
 
@@ -121,6 +124,11 @@ https://tomatitomkk.github.io/munish-perfum/
 ### **3. Actualizaciones Automáticas:**
 Cada vez que hagas `git push` a la rama `main`, GitHub Pages actualizará tu sitio automáticamente (toma ~1-2 minutos).
 
+### **4. Solución de Problemas:**
+- **Imágenes no cargan:** Espera 2-3 minutos y limpia caché (`Ctrl+Shift+R`)
+- **Cambios no aparecen:** Verifica el [workflow de Actions](https://github.com/tomatitomkk/munish-perfum/actions)
+- **Error 404:** Revisa que los nombres de archivo coincidan exactamente (case-sensitive)
+
 ---
 
 ## 🌐 **Dominio Personalizado (Opcional)**
@@ -206,3 +214,7 @@ Desarrollado con ❤️ para Munish Perfum
 ---
 
 **🚀 ¡Feliz venta de perfumes!**
+
+---
+
+_Última actualización: Febrero 2026 - Sistema de imágenes optimizado para GitHub Pages_
